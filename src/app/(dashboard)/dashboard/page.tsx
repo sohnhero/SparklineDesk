@@ -19,32 +19,60 @@ export default async function DashboardPage() {
     return <div>Organisation non trouvée.</div>;
   }
 
-  // Fetch counts and metrics
-  const [totalDocs, totalClients, documents, org] = await Promise.all([
+  // Fetch all in parallel — optimized selects
+  const [totalDocs, totalClients, documents, invoiceTotals, org] = await Promise.all([
     prisma.document.count({ where: { organizationId: orgId } }),
     prisma.client.count({ where: { organizationId: orgId, archivedAt: null } }),
+    // Recent docs — only fields needed for the table, no lines
     prisma.document.findMany({
       where: { organizationId: orgId },
-      include: {
-        client: true,
-        lines: true,
+      select: {
+        id: true,
+        type: true,
+        reference: true,
+        title: true,
+        status: true,
+        updatedAt: true,
+        discountPercent: true,
+        taxRate: true,
+        depositAmount: true,
+        dueDate: true,
+        client: { select: { name: true } },
+        lines: { select: { quantity: true, unitPrice: true } },
       },
       orderBy: { updatedAt: 'desc' },
+      take: 20, // cap at 20 for dashboard
     }),
-    prisma.organization.findUnique({ where: { id: orgId } }),
+    // Aggregate invoice amounts directly in DB
+    prisma.document.findMany({
+      where: {
+        organizationId: orgId,
+        type: { in: ['INVOICE', 'DEPOSIT'] },
+      },
+      select: {
+        status: true,
+        discountPercent: true,
+        taxRate: true,
+        depositAmount: true,
+        dueDate: true,
+        reference: true,
+        client: { select: { name: true } },
+        lines: { select: { quantity: true, unitPrice: true } },
+      },
+    }),
+    prisma.organization.findUnique({
+      where: { id: orgId },
+      select: { currency: true },
+    }),
   ]);
 
   const currency = org?.currency || 'FCFA';
 
-  // Calculate stats
-  const invoices = documents.filter((d) =>
-    ['INVOICE', 'DEPOSIT'].includes(d.type)
-  );
-
+  // Calculate stats from invoice data
   let paidTotal = 0;
   let pendingTotal = 0;
 
-  invoices.forEach((inv) => {
+  invoiceTotals.forEach((inv) => {
     const totals = calculateDocumentTotals({
       items: inv.lines.map((l) => ({ qty: Number(l.quantity), price: Number(l.unitPrice) })),
       discount: Number(inv.discountPercent),
@@ -60,11 +88,10 @@ export default async function DashboardPage() {
   });
 
   const acceptedCount = documents.filter((d) => d.status === 'ACCEPTED').length;
-
   const recentDocs = documents.slice(0, 6);
 
-  // Invoices to follow up: not paid and not rejected, sorted by due date
-  const followupInvoices = invoices
+  // Invoices to follow up
+  const followupInvoices = invoiceTotals
     .filter((d) => d.status !== 'PAID' && d.status !== 'REJECTED')
     .sort((a, b) => {
       const timeA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;

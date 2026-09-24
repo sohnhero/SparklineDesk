@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 import prisma from '@/lib/db/prisma';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -33,7 +34,7 @@ export interface AuthenticatedUser {
   };
 }
 
-export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
+export const getCurrentUser = cache(async (): Promise<AuthenticatedUser | null> => {
   try {
     const cookieStore = cookies();
     const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
@@ -88,7 +89,7 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
     console.error('Error fetching current user:', error);
     return null;
   }
-}
+});
 
 export async function loginUser(email: string, password: string):Promise<{ success: boolean; error?: string }> {
   try {
