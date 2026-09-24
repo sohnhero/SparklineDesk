@@ -381,7 +381,77 @@ export function DocumentEditorClient({
   };
 
   const handlePrint = () => {
-    window.print();
+    const previewEl = document.getElementById('documentPreview');
+    if (!previewEl) {
+      toast.error('Aperçu introuvable. Veuillez patienter et réessayer.');
+      return;
+    }
+
+    // Clone the preview node and remove the scale transform
+    const clone = previewEl.cloneNode(true) as HTMLElement;
+    clone.style.transform = 'none';
+    clone.style.transformOrigin = 'unset';
+    clone.style.width = '210mm';
+    clone.style.minHeight = '297mm';
+    clone.style.margin = '0';
+    clone.style.boxShadow = 'none';
+
+    // Collect all stylesheets from the current page
+    const styleSheets = Array.from(document.styleSheets)
+      .map((sheet) => {
+        try {
+          return Array.from(sheet.cssRules)
+            .map((rule) => rule.cssText)
+            .join('\n');
+        } catch {
+          // Cross-origin stylesheets — use a link tag fallback
+          return sheet.href ? `@import url("${sheet.href}");` : '';
+        }
+      })
+      .join('\n');
+
+    const printWindow = window.open('', '_blank', 'width=900,height=1200');
+    if (!printWindow) {
+      toast.error('Fenêtre bloquée. Autorisez les popups pour imprimer.');
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="fr">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Impression – ${doc.reference || 'Document'}</title>
+          <style>
+            ${styleSheets}
+            /* Print overrides */
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            @page { size: A4; margin: 0; }
+            html, body { margin: 0; padding: 0; background: #fff; }
+            body > article {
+              width: 210mm;
+              min-height: 297mm;
+              margin: 0 auto;
+              box-shadow: none;
+              transform: none;
+            }
+          </style>
+        </head>
+        <body>
+          ${clone.outerHTML}
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+                window.close();
+              }, 300);
+            };
+          <\/script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
   };
 
   const handleClose = () => {
