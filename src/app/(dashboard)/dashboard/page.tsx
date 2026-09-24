@@ -50,6 +50,7 @@ export default async function DashboardPage() {
         type: { in: ['INVOICE', 'DEPOSIT'] },
       },
       select: {
+        id: true,
         status: true,
         discountPercent: true,
         taxRate: true,
