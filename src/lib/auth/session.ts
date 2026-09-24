@@ -39,37 +39,6 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
     const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
     if (!sessionToken) {
-      // Fallback in development: auto-fetch first admin user so the app is immediately usable
-      const defaultUser = await prisma.user.findFirst({
-        include: { organization: true },
-      });
-      if (defaultUser) {
-        return {
-          id: defaultUser.id,
-          name: defaultUser.name,
-          email: defaultUser.email,
-          role: defaultUser.role,
-          organizationId: defaultUser.organizationId,
-          organization: {
-            id: defaultUser.organization.id,
-            name: defaultUser.organization.name,
-            legalName: defaultUser.organization.legalName,
-            email: defaultUser.organization.email,
-            phone: defaultUser.organization.phone,
-            website: defaultUser.organization.website,
-            address: defaultUser.organization.address,
-            city: defaultUser.organization.city,
-            country: defaultUser.organization.country,
-            currency: defaultUser.organization.currency,
-            taxRate: Number(defaultUser.organization.taxRate),
-            quoteValidityDays: defaultUser.organization.quoteValidityDays,
-            paymentTerms: defaultUser.organization.paymentTerms,
-            logoDarkUrl: defaultUser.organization.logoDarkUrl,
-            logoLightUrl: defaultUser.organization.logoLightUrl,
-            symbolUrl: defaultUser.organization.symbolUrl,
-          },
-        };
-      }
       return null;
     }
 
