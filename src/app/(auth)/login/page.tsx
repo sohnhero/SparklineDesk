@@ -37,111 +37,294 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070708] flex flex-col justify-center items-center relative overflow-hidden px-4 selection:bg-orange-500/30">
-      {/* Background ambient glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-orange-500/10 rounded-full blur-[140px] pointer-events-none" />
-      
-      <div className="w-full max-w-[420px] relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-700 ease-out">
+    <>
+      <style>{`
+        .login-wrapper {
+          min-height: 100vh;
+          background-color: #f4f4f5;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          overflow: hidden;
+          padding: 20px;
+          font-family: system-ui, -apple-system, sans-serif;
+        }
+        .login-glow {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 800px;
+          height: 600px;
+          background: rgba(249, 115, 22, 0.08);
+          border-radius: 50%;
+          filter: blur(100px);
+          pointer-events: none;
+        }
+        .login-container {
+          width: 100%;
+          max-width: 420px;
+          position: relative;
+          z-index: 10;
+          animation: slideUp 0.6s ease-out forwards;
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .login-header {
+          text-align: center;
+          margin-bottom: 32px;
+        }
+        .login-logo {
+          width: 160px;
+          margin: 0 auto 24px;
+        }
+        .login-title {
+          font-size: 24px;
+          font-weight: 700;
+          color: #18181b;
+          margin: 0 0 6px 0;
+          letter-spacing: -0.5px;
+        }
+        .login-subtitle {
+          color: #71717a;
+          font-size: 14px;
+          margin: 0;
+        }
+        .login-card {
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(228, 228, 231, 0.8);
+          border-radius: 24px;
+          padding: 32px;
+          box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08);
+        }
+        .form-group {
+          margin-bottom: 20px;
+        }
+        .form-label {
+          display: block;
+          font-size: 12px;
+          font-weight: 600;
+          color: #52525b;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 8px;
+          margin-left: 4px;
+        }
+        .form-label-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+          margin-left: 4px;
+        }
+        .form-link {
+          font-size: 12px;
+          color: #ea580c;
+          text-decoration: none;
+          font-weight: 500;
+        }
+        .form-link:hover {
+          color: #c2410c;
+        }
+        .input-wrapper {
+          position: relative;
+        }
+        .input-icon {
+          position: absolute;
+          left: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #a1a1aa;
+          transition: color 0.2s;
+        }
+        .input-wrapper:focus-within .input-icon {
+          color: #f97316;
+        }
+        .form-input {
+          width: 100%;
+          background: #ffffff;
+          border: 1px solid #d4d4d8;
+          border-radius: 12px;
+          padding: 12px 16px 12px 42px;
+          font-size: 14px;
+          color: #18181b;
+          outline: none;
+          transition: all 0.2s;
+          box-sizing: border-box;
+          box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .form-input::placeholder {
+          color: #a1a1aa;
+        }
+        .form-input:focus {
+          border-color: rgba(249, 115, 22, 0.5);
+          box-shadow: inset 0 2px 4px rgba(0,0,0,0.02), 0 0 0 3px rgba(249, 115, 22, 0.15);
+        }
+        .error-message {
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          color: #ef4444;
+          font-size: 12px;
+          font-weight: 500;
+          padding: 12px;
+          border-radius: 12px;
+          margin-bottom: 20px;
+          display: flex;
+          align-items: center;
+        }
+        .submit-btn {
+          width: 100%;
+          background: linear-gradient(to right, #f97316, #ea580c);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          padding: 14px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          transition: all 0.2s;
+          box-shadow: 0 8px 16px rgba(249, 115, 22, 0.2);
+        }
+        .submit-btn:hover:not(:disabled) {
+          background: linear-gradient(to right, #fb923c, #f97316);
+          box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+          transform: translateY(-1px);
+        }
+        .submit-btn:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+          transform: none;
+        }
+        .submit-btn svg {
+          transition: transform 0.2s;
+        }
+        .submit-btn:hover:not(:disabled) svg {
+          transform: translateX(4px);
+        }
+        .login-footer {
+          margin-top: 32px;
+          padding-top: 24px;
+          border-top: 1px solid #e4e4e7;
+          text-align: center;
+        }
+        .footer-text {
+          font-size: 12px;
+          color: #71717a;
+          margin-bottom: 8px;
+        }
+        .footer-badge {
+          display: inline-block;
+          font-size: 12px;
+          color: #52525b;
+          background: #f4f4f5;
+          border: 1px solid #e4e4e7;
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-weight: 600;
+        }
+      `}</style>
+
+      <div className="login-wrapper">
+        <div className="login-glow" />
         
-        {/* Logo and Header */}
-        <div className="flex flex-col items-center mb-8 text-center space-y-6">
-          <img
-            src="/assets/sparkline-logo-white.svg"
-            alt="Sparkline"
-            className="w-[160px] drop-shadow-xl"
-          />
-          <div className="space-y-1.5">
-            <h1 className="text-2xl font-semibold text-white tracking-tight">
+        <div className="login-container">
+          <div className="login-header">
+            <img
+              src="/assets/sparkline-logo-dark.svg"
+              alt="Sparkline"
+              className="login-logo"
+            />
+            <h1 className="login-title">
               Connexion à l'espace interne
             </h1>
-            <p className="text-zinc-500 text-sm font-medium">
+            <p className="login-subtitle">
               Gestion commerciale, devis, factures & finance
             </p>
           </div>
-        </div>
 
-        {/* Login Card */}
-        <div className="bg-[#0f0f11]/80 backdrop-blur-xl border border-zinc-800/60 rounded-[24px] p-8 shadow-2xl shadow-black/50">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            
-            {/* Email Field */}
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider ml-1">
-                Adresse e-mail
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="w-4 h-4 text-zinc-500 group-focus-within:text-orange-500 transition-colors" />
+          <div className="login-card">
+            <form onSubmit={handleSubmit}>
+              
+              {error && (
+                <div className="error-message">
+                  {error}
                 </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@sparkline.sn"
-                  className="w-full bg-[#161619] border border-zinc-800 rounded-xl py-3 pl-11 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all shadow-inner"
-                />
-              </div>
-            </div>
-
-            {/* Password Field */}
-            <div className="space-y-2">
-              <div className="flex justify-between items-center ml-1">
-                <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-                  Mot de passe
-                </label>
-                <a href="#" className="text-xs font-medium text-orange-500 hover:text-orange-400 transition-colors">
-                  Oublié ?
-                </a>
-              </div>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="w-4 h-4 text-zinc-500 group-focus-within:text-orange-500 transition-colors" />
-                </div>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full bg-[#161619] border border-zinc-800 rounded-xl py-3 pl-11 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all shadow-inner"
-                />
-              </div>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 flex items-center space-x-2 text-red-400 text-xs font-medium rounded-xl p-3 animate-in fade-in slide-in-from-top-2">
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-semibold rounded-xl py-3.5 px-4 text-sm transition-all duration-200 flex items-center justify-center space-x-2 mt-2 disabled:opacity-70 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(249,115,22,0.2)] hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] group"
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin text-white" />
-              ) : (
-                <>
-                  <span>Se connecter</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </>
               )}
-            </button>
-          </form>
 
-          {/* Footer Info */}
-          <div className="mt-8 pt-6 border-t border-zinc-800/60 text-center space-y-1.5">
-            <p className="text-xs text-zinc-500 font-medium">Compte administrateur par défaut :</p>
-            <p className="text-xs font-medium text-zinc-400 bg-[#161619] inline-block px-3 py-1.5 rounded-lg border border-zinc-800">
-              admin@sparkline.sn / password123
-            </p>
+              <div className="form-group">
+                <label className="form-label">
+                  Adresse e-mail
+                </label>
+                <div className="input-wrapper">
+                  <Mail className="w-4 h-4 input-icon" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@sparkline.sn"
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <div className="form-label-row">
+                  <label className="form-label" style={{ marginBottom: 0 }}>
+                    Mot de passe
+                  </label>
+                  <a href="#" className="form-link">
+                    Oublié ?
+                  </a>
+                </div>
+                <div className="input-wrapper">
+                  <Lock className="w-4 h-4 input-icon" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="submit-btn"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
+                ) : (
+                  <>
+                    <span>Se connecter</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <div className="login-footer">
+              <div className="footer-text">Compte administrateur par défaut :</div>
+              <div className="footer-badge">
+                admin@sparkline.sn / password123
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

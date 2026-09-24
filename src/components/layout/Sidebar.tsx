@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   FileText,
@@ -14,8 +14,11 @@ import {
   Upload,
   Plus,
   X,
+  LogOut,
+  Loader2
 } from 'lucide-react';
 import { useToast } from '@/components/ui/Toast';
+import { Modal } from '@/components/ui/Modal';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -33,8 +36,12 @@ export function Sidebar({
   clientsCount = 0,
 }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleExport = async () => {
     try {
@@ -79,6 +86,18 @@ export function Sidebar({
     }
   };
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      // Force reload to clear client state and redirect to login
+      window.location.href = '/login';
+    } catch (error) {
+      toast('Erreur lors de la déconnexion', 'error');
+      setIsLoggingOut(false);
+    }
+  };
+
   const navItems = [
     { href: '/dashboard', label: "Vue d'ensemble", icon: <LayoutDashboard size={16} strokeWidth={2} /> },
     { href: '/documents', label: 'Documents', icon: <FileText size={16} strokeWidth={2} />, count: documentsCount },
@@ -88,111 +107,155 @@ export function Sidebar({
   ];
 
   return (
-    <aside className={`sidebar ${isOpen ? 'open' : ''}`} id="sidebar">
-      <div className="brand-wrap">
-        <Link href="/dashboard">
-          <img
-            src="/assets/sparkline-logo-white.svg"
-            alt="Sparkline"
-            className="brand-logo"
-          />
-        </Link>
+    <>
+      <aside className={`sidebar ${isOpen ? 'open' : ''}`} id="sidebar">
+        <div className="brand-wrap">
+          <Link href="/dashboard">
+            <img
+              src="/assets/sparkline-logo-white.svg"
+              alt="Sparkline"
+              className="brand-logo"
+            />
+          </Link>
+          <button
+            className="icon-button sidebar-close"
+            id="sidebarClose"
+            onClick={onClose}
+            aria-label="Fermer le menu"
+          >
+            <X size={16} strokeWidth={2} />
+          </button>
+        </div>
+
         <button
-          className="icon-button sidebar-close"
-          id="sidebarClose"
-          onClick={onClose}
-          aria-label="Fermer le menu"
+          type="button"
+          className="primary-action"
+          onClick={() => {
+            onOpenNewDoc();
+            onClose();
+          }}
         >
-          <X size={16} strokeWidth={2} />
+          <span className="plus" style={{ display: 'grid', placeItems: 'center' }}>
+            <Plus size={15} strokeWidth={2.5} />
+          </span>
+          <span>Nouveau document</span>
         </button>
-      </div>
 
-      <button
-        type="button"
-        className="primary-action"
-        onClick={() => {
-          onOpenNewDoc();
-          onClose();
-        }}
+        <nav className="main-nav" aria-label="Navigation principale">
+          {navItems.map((item) => {
+            const isActive =
+              pathname === item.href ||
+              (item.href !== '/dashboard' && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`nav-item ${isActive ? 'active' : ''}`}
+                onClick={onClose}
+              >
+                <span className="nav-icon" style={{ display: 'grid', placeItems: 'center' }}>
+                  {item.icon}
+                </span>
+                <span>{item.label}</span>
+                {typeof item.count === 'number' && (
+                  <span className="nav-count">{item.count}</span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="sidebar-spacer" />
+
+        <div className="workspace-card">
+          <div className="workspace-symbol">
+            <img src="/assets/sparkline-symbol.svg" alt="" />
+          </div>
+          <div>
+            <div className="workspace-name">Sparkline Studio</div>
+            <div className="workspace-meta">Espace interne</div>
+          </div>
+          <span className="workspace-dot" />
+        </div>
+
+        <nav className="secondary-nav">
+          <Link
+            href="/settings"
+            className={`nav-item ${pathname === '/settings' ? 'active' : ''}`}
+            onClick={onClose}
+          >
+            <span className="nav-icon" style={{ display: 'grid', placeItems: 'center' }}>
+              <Settings size={15} strokeWidth={2} />
+            </span>
+            <span>Paramètres</span>
+          </Link>
+          <button type="button" className="nav-item" onClick={handleExport}>
+            <span className="nav-icon" style={{ display: 'grid', placeItems: 'center' }}>
+              <Download size={15} strokeWidth={2} />
+            </span>
+            <span>Exporter les données</span>
+          </button>
+          <label className="nav-item file-label">
+            <span className="nav-icon" style={{ display: 'grid', placeItems: 'center' }}>
+              <Upload size={15} strokeWidth={2} />
+            </span>
+            <span>Importer les données</span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/json"
+              onChange={handleImport}
+              hidden
+            />
+          </label>
+          <button 
+            type="button" 
+            className="nav-item" 
+            onClick={() => setIsLogoutModalOpen(true)}
+            style={{ color: '#ef4444' }}
+          >
+            <span className="nav-icon" style={{ display: 'grid', placeItems: 'center', color: '#ef4444' }}>
+              <LogOut size={15} strokeWidth={2} />
+            </span>
+            <span>Se déconnecter</span>
+          </button>
+        </nav>
+
+        <div className="sidebar-footer">
+          SPARKLINE DESK <span>v1.0</span>
+        </div>
+      </aside>
+
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        title="Se déconnecter"
+        kicker="Session"
+        compact
       >
-        <span className="plus" style={{ display: 'grid', placeItems: 'center' }}>
-          <Plus size={15} strokeWidth={2.5} />
-        </span>
-        <span>Nouveau document</span>
-      </button>
-
-      <nav className="main-nav" aria-label="Navigation principale">
-        {navItems.map((item) => {
-          const isActive =
-            pathname === item.href ||
-            (item.href !== '/dashboard' && pathname.startsWith(item.href));
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`nav-item ${isActive ? 'active' : ''}`}
-              onClick={onClose}
-            >
-              <span className="nav-icon" style={{ display: 'grid', placeItems: 'center' }}>
-                {item.icon}
-              </span>
-              <span>{item.label}</span>
-              {typeof item.count === 'number' && (
-                <span className="nav-count">{item.count}</span>
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="sidebar-spacer" />
-
-      <div className="workspace-card">
-        <div className="workspace-symbol">
-          <img src="/assets/sparkline-symbol.svg" alt="" />
+        <p style={{ color: '#a1a1aa', fontSize: '14px', marginBottom: '24px' }}>
+          Êtes-vous sûr de vouloir vous déconnecter de votre session Sparkline Desk ?
+        </p>
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            className="secondary-action"
+            onClick={() => setIsLogoutModalOpen(false)}
+            disabled={isLoggingOut}
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            className="primary-action"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#ef4444', color: 'white' }}
+          >
+            {isLoggingOut ? <Loader2 size={16} className="animate-spin" /> : 'Me déconnecter'}
+          </button>
         </div>
-        <div>
-          <div className="workspace-name">Sparkline Studio</div>
-          <div className="workspace-meta">Espace interne</div>
-        </div>
-        <span className="workspace-dot" />
-      </div>
-
-      <nav className="secondary-nav">
-        <Link
-          href="/settings"
-          className={`nav-item ${pathname === '/settings' ? 'active' : ''}`}
-          onClick={onClose}
-        >
-          <span className="nav-icon" style={{ display: 'grid', placeItems: 'center' }}>
-            <Settings size={15} strokeWidth={2} />
-          </span>
-          <span>Paramètres</span>
-        </Link>
-        <button type="button" className="nav-item" onClick={handleExport}>
-          <span className="nav-icon" style={{ display: 'grid', placeItems: 'center' }}>
-            <Download size={15} strokeWidth={2} />
-          </span>
-          <span>Exporter les données</span>
-        </button>
-        <label className="nav-item file-label">
-          <span className="nav-icon" style={{ display: 'grid', placeItems: 'center' }}>
-            <Upload size={15} strokeWidth={2} />
-          </span>
-          <span>Importer les données</span>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/json"
-            onChange={handleImport}
-            hidden
-          />
-        </label>
-      </nav>
-
-      <div className="sidebar-footer">
-        SPARKLINE DESK <span>v1.0</span>
-      </div>
-    </aside>
+      </Modal>
+    </>
   );
 }
