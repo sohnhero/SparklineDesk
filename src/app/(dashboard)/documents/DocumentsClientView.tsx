@@ -18,7 +18,7 @@ import {
 import { TYPE_META, DocTypeKey } from '@/domains/documents/types';
 import { DocumentTypeModal } from '@/components/ui/DocumentTypeModal';
 import { formatMoney, formatDate } from '@/lib/utils/format';
-import { useToast } from '@/components/ui/Toast';
+import { toast } from 'react-toastify';
 
 export interface DocumentListItem {
   id: string;
@@ -54,8 +54,7 @@ export function DocumentsClientView({
   const [currentPage, setCurrentPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const router = useRouter();
-  const { toast } = useToast();
-
+  
   const filteredDocs = useMemo(() => {
     return documents.filter((doc) => {
       if (typeFilter !== 'all' && doc.typeKey !== typeFilter) return false;
@@ -105,12 +104,12 @@ export function DocumentsClientView({
         method: 'POST',
       });
       if (!res.ok) throw new Error('Échec duplication');
-      toast('Document dupliqué avec succès.');
+      toast.success('Document dupliqué avec succès.');
       router.refresh();
       const data = await res.json();
       router.push(`/documents/${data.document.id}`);
     } catch {
-      toast('Erreur lors de la duplication', 'error');
+      toast.success('Erreur lors de la duplication');
     }
   };
 
@@ -123,10 +122,10 @@ export function DocumentsClientView({
       });
       if (!res.ok) throw new Error('Échec suppression');
       setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
-      toast('Document supprimé.');
+      toast.success('Document supprimé.');
       router.refresh();
     } catch {
-      toast('Erreur lors de la suppression', 'error');
+      toast.success('Erreur lors de la suppression');
     }
   };
 

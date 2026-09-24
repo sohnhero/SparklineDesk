@@ -236,7 +236,7 @@ export default function LoginPage() {
 
       <div className="login-wrapper">
         <div className="login-glow" />
-        
+
         <div className="login-container">
           <div className="login-header">
             <img
@@ -254,7 +254,7 @@ export default function LoginPage() {
 
           <div className="login-card">
             <form onSubmit={handleSubmit}>
-              
+
               {error && (
                 <div className="error-message">
                   {error}
@@ -317,10 +317,7 @@ export default function LoginPage() {
             </form>
 
             <div className="login-footer">
-              <div className="footer-text">Compte administrateur par défaut :</div>
-              <div className="footer-badge">
-                admin@sparkline.sn / password123
-              </div>
+
             </div>
           </div>
         </div>

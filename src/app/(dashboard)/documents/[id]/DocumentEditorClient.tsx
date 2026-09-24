@@ -6,7 +6,7 @@ import { Plus, Minus, Sparkles, UserPlus, Wand2, Loader2, CheckCircle2, Bot } fr
 import { Modal } from '@/components/ui/Modal';
 import { TYPE_META, DocTypeKey } from '@/domains/documents/types';
 import { DocumentPreview } from '@/components/preview/DocumentPreview';
-import { useToast } from '@/components/ui/Toast';
+import { toast } from 'react-toastify';
 import { calculateDocumentTotals } from '@/lib/utils/calculations';
 import { formatMoney, uid } from '@/lib/utils/format';
 
@@ -78,8 +78,7 @@ export function DocumentEditorClient({
   const [savingClient, setSavingClient] = useState(false);
 
   const router = useRouter();
-  const { toast } = useToast();
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const meta = TYPE_META[doc.type as DocTypeKey] || TYPE_META.quote;
   const isFinancial = meta.kind === 'financial';
@@ -138,10 +137,10 @@ export function DocumentEditorClient({
         const newLines = isCurrentEmpty ? formatted : [...(doc.lines || []), ...formatted];
         setDoc((prev: any) => ({ ...prev, lines: newLines }));
         markDirty();
-        toast(`${formatted.length} prestations générées par l’IA Gemini Pro !`);
+        toast.success(`${formatted.length} prestations générées par l’IA Gemini Pro !`);
       }
     } catch {
-      toast('Impossible de générer les prestations avec l’IA.', 'error');
+      toast.success('Impossible de générer les prestations avec l’IA.');
     } finally {
       setLoadingAi(false);
       setLoadingAiField(null);
@@ -168,7 +167,7 @@ export function DocumentEditorClient({
         if (data.enhanced) {
           setDoc((prev: any) => ({ ...prev, intro: data.enhanced }));
           markDirty();
-          toast('Introduction améliorée avec l’IA !');
+          toast.success('Introduction améliorée avec l’IA !');
         }
       } else {
         const res = await fetch('/api/ai/document', {
@@ -185,11 +184,11 @@ export function DocumentEditorClient({
         if (data.document?.intro) {
           setDoc((prev: any) => ({ ...prev, intro: data.document.intro }));
           markDirty();
-          toast('Introduction rédigée par l’IA Gemini Pro !');
+          toast.success('Introduction rédigée par l’IA Gemini Pro !');
         }
       }
     } catch {
-      toast('Impossible de rédiger l’introduction avec l’IA.', 'error');
+      toast.success('Impossible de rédiger l’introduction avec l’IA.');
     } finally {
       setLoadingAi(false);
       setLoadingAiField(null);
@@ -215,10 +214,10 @@ export function DocumentEditorClient({
       if (data.conditions) {
         setDoc((prev: any) => ({ ...prev, conditions: data.conditions }));
         markDirty();
-        toast('Conditions de règlement rédigées avec l’IA !');
+        toast.success('Conditions de règlement rédigées avec l’IA !');
       }
     } catch {
-      toast('Impossible de générer les conditions avec l’IA.', 'error');
+      toast.success('Impossible de générer les conditions avec l’IA.');
     } finally {
       setLoadingAi(false);
       setLoadingAiField(null);
@@ -246,10 +245,10 @@ export function DocumentEditorClient({
       const data = await res.json();
       if (data.enhanced) {
         updateSection(sectionIdx, 'content', data.enhanced);
-        toast(`Section "${sec.title}" rédigée avec l’IA !`);
+        toast.success(`Section "${sec.title}" rédigée avec l’IA !`);
       }
     } catch {
-      toast('Impossible de rédiger la section avec l’IA.', 'error');
+      toast.success('Impossible de rédiger la section avec l’IA.');
     } finally {
       setLoadingAi(false);
       setLoadingAiField(null);
@@ -259,7 +258,7 @@ export function DocumentEditorClient({
   // 5. Full Document Generation from modal
   const handleAiFullModalSubmit = async () => {
     if (!aiCustomPrompt.trim()) {
-      toast('Veuillez décrire le besoin ou le sujet de la mission.', 'error');
+      toast.success('Veuillez décrire le besoin ou le sujet de la mission.');
       return;
     }
     setLoadingAi(true);
@@ -312,11 +311,11 @@ export function DocumentEditorClient({
           return updated;
         });
         markDirty();
-        toast('Document entièrement complété par l’IA Gemini Pro !');
+        toast.success('Document entièrement complété par l’IA Gemini Pro !');
         setShowAiModal(false);
       }
     } catch {
-      toast('Impossible de générer le document avec l’IA.', 'error');
+      toast.success('Impossible de générer le document avec l’IA.');
     } finally {
       setLoadingAi(false);
     }
@@ -324,7 +323,7 @@ export function DocumentEditorClient({
 
   const handleSave = async (showNotification = true) => {
     if (!doc.clientId) {
-      if (showNotification) toast('Veuillez sélectionner un client.', 'error');
+      if (showNotification) toast.success('Veuillez sélectionner un client.');
       return;
     }
 
@@ -338,10 +337,10 @@ export function DocumentEditorClient({
 
       if (!res.ok) throw new Error('Erreur de sauvegarde');
       setSaveStatus('saved');
-      if (showNotification) toast('Document enregistré.');
+      if (showNotification) toast.success('Document enregistré.');
     } catch {
       setSaveStatus('dirty');
-      if (showNotification) toast('Erreur lors de la sauvegarde.', 'error');
+      if (showNotification) toast.success('Erreur lors de la sauvegarde.');
     }
   };
 
@@ -353,10 +352,10 @@ export function DocumentEditorClient({
       });
       if (!res.ok) throw new Error('Échec duplication');
       const data = await res.json();
-      toast('Document dupliqué avec succès.');
+      toast.success('Document dupliqué avec succès.');
       router.push(`/documents/${data.document.id}`);
     } catch {
-      toast('Erreur lors de la duplication', 'error');
+      toast.success('Erreur lors de la duplication');
     }
   };
 
@@ -370,10 +369,10 @@ export function DocumentEditorClient({
       });
       if (!res.ok) throw new Error('Échec conversion');
       const data = await res.json();
-      toast('Devis converti en Facture avec succès !');
+      toast.success('Devis converti en Facture avec succès !');
       router.push(`/documents/${data.document.id}`);
     } catch {
-      toast('Erreur lors de la conversion', 'error');
+      toast.success('Erreur lors de la conversion');
     }
   };
 
@@ -443,7 +442,7 @@ export function DocumentEditorClient({
     });
     setDoc({ ...doc, lines });
     markDirty();
-    toast('Ligne dupliquée.');
+    toast.success('Ligne dupliquée.');
   };
 
   const moveLine = (idx: number, delta: number) => {
@@ -474,7 +473,7 @@ export function DocumentEditorClient({
     });
     setShowCatalogModal(false);
     markDirty();
-    toast(`« ${item.name} » ajouté.`);
+    toast.success(`« ${item.name} » ajouté.`);
   };
 
   // Section mutations for proposals
@@ -517,7 +516,7 @@ export function DocumentEditorClient({
   const handleSaveInlineClient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newClientName.trim()) {
-      toast('Le nom du client est obligatoire.', 'error');
+      toast.success('Le nom du client est obligatoire.');
       return;
     }
     setSavingClient(true);
@@ -543,9 +542,9 @@ export function DocumentEditorClient({
       setNewClientEmail('');
       setNewClientPhone('');
       markDirty();
-      toast(`Client « ${data.client.name} » créé.`);
+      toast.success(`Client « ${data.client.name} » créé.`);
     } catch {
-      toast('Impossible de créer le client.', 'error');
+      toast.success('Impossible de créer le client.');
     } finally {
       setSavingClient(false);
     }

@@ -20,7 +20,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { formatMoney, formatDate } from '@/lib/utils/format';
-import { useToast } from '@/components/ui/Toast';
+import { toast } from 'react-toastify';
 import { Modal } from '@/components/ui/Modal';
 
 export interface InvoiceTrackingItem {
@@ -88,8 +88,7 @@ export function FinanceClientView({
   const [hoveredBar, setHoveredBar] = useState<string | null>(null);
 
   const router = useRouter();
-  const { toast } = useToast();
-
+  
   const periodTotal = statsMeta?.periodTotal ?? chartBars.reduce((s, b) => s + b.val, 0);
   const averageMonthly = statsMeta?.averageMonthly ?? Math.round(periodTotal / (chartBars.length || 1));
   const recoveryRate = statsMeta?.recoveryRate ?? (summary.issued > 0 ? Math.round((summary.paid / summary.issued) * 100) : 100);
@@ -130,11 +129,11 @@ export function FinanceClientView({
             : item
         )
       );
-      toast(`Règlement enregistré pour ${payingInvoice.reference} (${paymentMethod}).`);
+      toast.success(`Règlement enregistré pour ${payingInvoice.reference} (${paymentMethod}).`);
       setPayingInvoice(null);
       router.refresh();
     } catch {
-      toast('Erreur lors du règlement de la facture.', 'error');
+      toast.success('Erreur lors du règlement de la facture.');
     } finally {
       setSubmittingPayment(false);
     }
@@ -198,7 +197,7 @@ export function FinanceClientView({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast('Export CSV des factures généré.');
+    toast.success('Export CSV des factures généré.');
   };
 
   const cards = [

@@ -1,4 +1,6 @@
 import type { Metadata, Viewport } from 'next';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
@@ -22,7 +24,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ToastContainer 
+          position="bottom-right"
+          theme="dark"
+          toastStyle={{
+            backgroundColor: 'rgba(15, 15, 17, 0.9)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(39, 39, 42, 0.8)',
+            color: '#fff',
+            borderRadius: '12px',
+          }}
+        />
+      </body>
     </html>
   );
 }

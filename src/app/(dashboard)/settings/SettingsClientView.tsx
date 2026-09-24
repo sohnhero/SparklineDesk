@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useToast } from '@/components/ui/Toast';
+import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 
 interface SettingsClientViewProps {
@@ -41,8 +41,7 @@ export function SettingsClientView({
   const [savingCompany, setSavingCompany] = useState(false);
   const [savingDocs, setSavingDocs] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState(false);
-  const { toast } = useToast();
-  const router = useRouter();
+    const router = useRouter();
 
   const handleSaveCompany = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,10 +54,10 @@ export function SettingsClientView({
       });
 
       if (!res.ok) throw new Error('Erreur sauvegarde entreprise');
-      toast('Informations Sparkline enregistrées.');
+      toast.success('Informations Sparkline enregistrées.');
       router.refresh();
     } catch {
-      toast('Erreur lors de l’enregistrement.', 'error');
+      toast.success('Erreur lors de l’enregistrement.');
     } finally {
       setSavingCompany(false);
     }
@@ -75,10 +74,10 @@ export function SettingsClientView({
       });
 
       if (!res.ok) throw new Error('Erreur sauvegarde préférences');
-      toast('Préférences documents enregistrées.');
+      toast.success('Préférences documents enregistrées.');
       router.refresh();
     } catch {
-      toast('Erreur lors de l’enregistrement.', 'error');
+      toast.success('Erreur lors de l’enregistrement.');
     } finally {
       setSavingDocs(false);
     }
@@ -113,10 +112,10 @@ export function SettingsClientView({
         throw new Error(err.error || 'Erreur lors de l’importation');
       }
 
-      toast('Sauvegarde restaurée avec succès !');
+      toast.success('Sauvegarde restaurée avec succès !');
       router.refresh();
     } catch (err: any) {
-      toast(err.message || 'Fichier de sauvegarde invalide.', 'error');
+      toast(err.message || 'Fichier de sauvegarde invalide.');
     } finally {
       setRestoringBackup(false);
       e.target.value = '';

@@ -7,7 +7,7 @@ import { Topbar } from './Topbar';
 import { DocumentTypeModal } from '@/components/ui/DocumentTypeModal';
 import { ClientModal, ClientFormData } from '@/components/ui/ClientModal';
 import { SearchPalette } from '@/components/ui/SearchPalette';
-import { ToastProvider, useToast } from '@/components/ui/Toast';
+import { toast } from 'react-toastify';
 import { DocTypeKey } from '@/domains/documents/types';
 
 interface AppShellProps {
@@ -30,8 +30,7 @@ function ShellInner({
   const [newClientModalOpen, setNewClientModalOpen] = useState(false);
   const [counts, setCounts] = useState(initialCounts);
   const router = useRouter();
-  const { toast } = useToast();
-
+  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -60,11 +59,11 @@ function ShellInner({
         throw new Error(err.error || 'Erreur lors de la création');
       }
 
-      toast('Client créé avec succès !');
+      toast.success('Client créé avec succès !');
       setCounts((prev) => ({ ...prev, clients: prev.clients + 1 }));
       router.refresh();
     } catch (err: any) {
-      toast(err.message || 'Impossible de créer le client', 'error');
+      toast.error(err.message || 'Impossible de créer le client');
     }
   };
 
@@ -118,9 +117,5 @@ function ShellInner({
 }
 
 export function AppShell(props: AppShellProps) {
-  return (
-    <ToastProvider>
-      <ShellInner {...props} />
-    </ToastProvider>
-  );
+  return <ShellInner {...props} />;
 }

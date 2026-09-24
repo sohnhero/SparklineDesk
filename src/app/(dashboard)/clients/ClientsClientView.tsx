@@ -7,7 +7,7 @@ import { Users, Plus, Download, Edit2, FileText } from 'lucide-react';
 import { ClientModal, ClientFormData } from '@/components/ui/ClientModal';
 import { DocumentTypeModal } from '@/components/ui/DocumentTypeModal';
 import { Modal } from '@/components/ui/Modal';
-import { useToast } from '@/components/ui/Toast';
+import { toast } from 'react-toastify';
 import { formatMoney, initials } from '@/lib/utils/format';
 import { STATUS_MAP } from '@/domains/documents/types';
 
@@ -52,8 +52,7 @@ export function ClientsClientView({
   const [docTypeModalOpen, setDocTypeModalOpen] = useState(false);
   const [targetClientId, setTargetClientId] = useState<string | null>(null);
   const router = useRouter();
-  const { toast } = useToast();
-
+  
   const filteredClients = clients.filter((c) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
@@ -92,7 +91,7 @@ export function ClientsClientView({
               : c
           )
         );
-        toast('Client mis à jour.');
+        toast.success('Client mis à jour.');
       } else {
         // Create
         const res = await fetch('/api/clients', {
@@ -121,13 +120,13 @@ export function ClientsClientView({
           },
           ...prev,
         ]);
-        toast('Client créé avec succès.');
+        toast.success('Client créé avec succès.');
       }
       setModalOpen(false);
       setEditingClient(null);
       router.refresh();
     } catch (err: any) {
-      toast(err.message || 'Une erreur est survenue', 'error');
+      toast(err.message || 'Une erreur est survenue');
     }
   };
 
@@ -149,10 +148,10 @@ export function ClientsClientView({
       if (detailClient?.id === client.id) {
         setDetailClient(null);
       }
-      toast('Client supprimé.');
+      toast.success('Client supprimé.');
       router.refresh();
     } catch (err: any) {
-      toast(err.message || 'Impossible de supprimer ce client', 'error');
+      toast(err.message || 'Impossible de supprimer ce client');
     }
   };
 
@@ -183,7 +182,7 @@ export function ClientsClientView({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast('Export CSV généré.');
+    toast.success('Export CSV généré.');
   };
 
   return (

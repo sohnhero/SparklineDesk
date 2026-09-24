@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Sparkles, Loader2, CheckCircle2, Wand2 } from 'lucide-react';
 import { Modal } from './Modal';
 import { TYPE_META, DocTypeKey } from '@/domains/documents/types';
-import { useToast } from './Toast';
+import { toast } from 'react-toastify';
 
 interface ClientOption {
   id: string;
@@ -91,11 +91,10 @@ export function DocumentTypeModal({
   const [aiGeneratedData, setAiGeneratedData] = useState<any>(null);
 
   const router = useRouter();
-  const { toast } = useToast();
-
+  
   const handleGenerateWithAi = async () => {
     if (!aiBrief.trim()) {
-      toast('Décrivez en quelques mots la mission ou le besoin pour l’IA.', 'error');
+      toast.success('Décrivez en quelques mots la mission ou le besoin pour l’IA.');
       return;
     }
     setGeneratingWithAi(true);
@@ -121,10 +120,10 @@ export function DocumentTypeModal({
         if (data.document.title) {
           setDocTitle(data.document.title);
         }
-        toast('Document prérempli avec l’IA Gemini Pro !');
+        toast.success('Document prérempli avec l’IA Gemini Pro !');
       }
     } catch (err: any) {
-      toast(err.message || 'Impossible de générer le document avec l’IA', 'error');
+      toast(err.message || 'Impossible de générer le document avec l’IA');
     } finally {
       setGeneratingWithAi(false);
     }
@@ -184,7 +183,7 @@ export function DocumentTypeModal({
   const handleCreateInlineClient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newClientName.trim()) {
-      toast('Le nom du client est requis.', 'error');
+      toast.success('Le nom du client est requis.');
       return;
     }
 
@@ -216,9 +215,9 @@ export function DocumentTypeModal({
       setNewClientContact('');
       setNewClientEmail('');
       setNewClientPhone('');
-      toast(`Client « ${client.name} » créé et sélectionné !`);
+      toast.success(`Client « ${client.name} » créé et sélectionné !`);
     } catch (err: any) {
-      toast(err.message || 'Impossible de créer le client', 'error');
+      toast(err.message || 'Impossible de créer le client');
     } finally {
       setSavingNewClient(false);
     }
@@ -227,7 +226,7 @@ export function DocumentTypeModal({
   // Submit document creation
   const handleCreateDocument = async () => {
     if (!selectedClientId) {
-      toast('Veuillez sélectionner ou créer un client.', 'error');
+      toast.success('Veuillez sélectionner ou créer un client.');
       return;
     }
 
@@ -278,12 +277,12 @@ export function DocumentTypeModal({
       }
 
       const data = await res.json();
-      toast('Document créé avec succès !');
+      toast.success('Document créé avec succès !');
       onClose();
       router.push(`/documents/${data.document.id}`);
       router.refresh();
     } catch (err: any) {
-      toast(err.message || 'Impossible de créer le document', 'error');
+      toast(err.message || 'Impossible de créer le document');
       setCreating(false);
     }
   };

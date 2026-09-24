@@ -15,10 +15,10 @@ import {
   Plus,
   X,
   LogOut,
-  Loader2
+  Loader2,
+  AlertTriangle
 } from 'lucide-react';
-import { useToast } from '@/components/ui/Toast';
-import { Modal } from '@/components/ui/Modal';
+import { toast } from 'react-toastify';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -38,7 +38,6 @@ export function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
   
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -54,9 +53,9 @@ export function Sidebar({
       a.download = `sparkline-desk-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      toast('Sauvegarde exportée avec succès.');
+      toast.success('Sauvegarde exportée avec succès.');
     } catch {
-      toast('Erreur lors de l’export des données.', 'error');
+      toast.error('Erreur lors de l’export des données.');
     }
   };
 
@@ -77,10 +76,10 @@ export function Sidebar({
         throw new Error(err.error || 'Erreur d’importation');
       }
 
-      toast('Données importées avec succès ! Rechargement...');
+      toast.success('Données importées avec succès ! Rechargement...');
       setTimeout(() => window.location.reload(), 1200);
     } catch (err: any) {
-      toast(err.message || 'Fichier de sauvegarde invalide.', 'error');
+      toast.error(err.message || 'Fichier de sauvegarde invalide.');
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
@@ -90,10 +89,9 @@ export function Sidebar({
     setIsLoggingOut(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      // Force reload to clear client state and redirect to login
       window.location.href = '/login';
     } catch (error) {
-      toast('Erreur lors de la déconnexion', 'error');
+      toast.error('Erreur lors de la déconnexion');
       setIsLoggingOut(false);
     }
   };
@@ -210,12 +208,12 @@ export function Sidebar({
           </label>
           <button 
             type="button" 
-            className="nav-item" 
+            className="nav-item group" 
             onClick={() => setIsLogoutModalOpen(true)}
             style={{ color: '#ef4444' }}
           >
             <span className="nav-icon" style={{ display: 'grid', placeItems: 'center', color: '#ef4444' }}>
-              <LogOut size={15} strokeWidth={2} />
+              <LogOut size={15} strokeWidth={2} className="group-hover:-translate-x-1 transition-transform" />
             </span>
             <span>Se déconnecter</span>
           </button>
@@ -226,36 +224,144 @@ export function Sidebar({
         </div>
       </aside>
 
-      <Modal
-        isOpen={isLogoutModalOpen}
-        onClose={() => setIsLogoutModalOpen(false)}
-        title="Se déconnecter"
-        kicker="Session"
-        compact
-      >
-        <p style={{ color: '#a1a1aa', fontSize: '14px', marginBottom: '24px' }}>
-          Êtes-vous sûr de vouloir vous déconnecter de votre session Sparkline Desk ?
-        </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-          <button
-            type="button"
-            className="secondary-action"
+      {/* CUSTOM PREMIUM LOGOUT MODAL */}
+      {isLogoutModalOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+        }}>
+          {/* Backdrop with blur */}
+          <div 
             onClick={() => setIsLogoutModalOpen(false)}
-            disabled={isLoggingOut}
-          >
-            Annuler
-          </button>
-          <button
-            type="button"
-            className="primary-action"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#ef4444', color: 'white' }}
-          >
-            {isLoggingOut ? <Loader2 size={16} className="animate-spin" /> : 'Me déconnecter'}
-          </button>
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              animation: 'fadeIn 0.2s ease-out'
+            }}
+          />
+          
+          {/* Modal Card */}
+          <div style={{
+            position: 'relative',
+            width: '100%',
+            maxWidth: '400px',
+            background: 'rgba(15, 15, 17, 0.85)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            borderRadius: '24px',
+            padding: '32px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05) inset',
+            animation: 'slideUpModal 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            overflow: 'hidden'
+          }}>
+            {/* Subtle red glow */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '100%',
+              height: '100px',
+              background: 'radial-gradient(ellipse at top, rgba(239, 68, 68, 0.15), transparent 70%)',
+              pointerEvents: 'none'
+            }} />
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '16px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '20px',
+                color: '#ef4444'
+              }}>
+                <LogOut size={24} strokeWidth={2} style={{ transform: 'translateX(-2px)' }} />
+              </div>
+              
+              <h2 style={{ fontSize: '20px', fontWeight: 600, color: 'white', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>
+                Fin de session
+              </h2>
+              <p style={{ color: '#a1a1aa', fontSize: '14px', margin: '0 0 32px 0', lineHeight: 1.5 }}>
+                Êtes-vous sûr de vouloir vous déconnecter de votre espace Sparkline Desk ?
+              </p>
+
+              <div style={{ display: 'flex', width: '100%', gap: '12px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsLogoutModalOpen(false)}
+                  disabled={isLoggingOut}
+                  style={{
+                    flex: 1,
+                    background: '#18181b',
+                    border: '1px solid #27272a',
+                    color: 'white',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.background = '#27272a' }}
+                  onMouseOut={(e) => { e.currentTarget.style.background = '#18181b' }}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  disabled={isLoggingOut}
+                  style={{
+                    flex: 1,
+                    background: 'linear-gradient(to right, #ef4444, #dc2626)',
+                    border: 'none',
+                    color: 'white',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(239, 68, 68, 0.3)' }}
+                  onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.2)' }}
+                >
+                  {isLoggingOut ? <Loader2 size={16} className="animate-spin" /> : 'Me déconnecter'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </Modal>
+      )}
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUpModal {
+          from { opacity: 0; transform: translateY(20px) scale(0.95); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
     </>
   );
 }
