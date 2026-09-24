@@ -1,0 +1,271 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum ClientType {
+  PROSPECT
+  CLIENT
+  PARTNER
+}
+
+enum DocumentType {
+  QUOTE
+  INVOICE
+  DEPOSIT
+  CREDIT
+  PROPOSAL
+  CONTRACT
+  NDA
+  ORDER
+  DELIVERY
+  REPORT
+}
+
+enum DocumentStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  PAID
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
+model Organization {
+  id                String   @id @default(cuid())
+  name              String
+  legalName         String   @default("Sparkline — Digital Solutions")
+  email             String   @default("sparkline221@gmail.com")
+  phone             String   @default("+221 78 942 24 23")
+  website           String   @default("www.sparkline.sn")
+  address           String   @default("Dakar, Sénégal")
+  city              String   @default("Dakar")
+  country           String   @default("Sénégal")
+  currency          String   @default("FCFA")
+  taxRate           Decimal  @default(0.0) @db.Decimal(5, 2)
+  quoteValidityDays Int      @default(30)
+  paymentTerms      String   @default("50% à la signature, solde avant livraison")
+  footerNote        String   @default("Concevoir la nouvelle ère du numérique.")
+  logoDarkUrl       String   @default("/assets/sparkline-logo-dark.svg")
+  logoLightUrl      String   @default("/assets/sparkline-logo-white.svg")
+  symbolUrl         String   @default("/assets/sparkline-symbol.svg")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  users             User[]
+  clients           Client[]
+  documents         Document[]
+  templates         Template[]
+  catalogItems      ServiceCatalogItem[]
+  activityLogs      ActivityLog[]
+}
+
+model User {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  email          String       @unique
+  passwordHash   String
+  role           Role         @default(ADMIN)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sessions       Session[]
+  activityLogs   ActivityLog[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Client {
+  id             String       @id @default(cuid())
+  organizationId String
+  type           ClientType   @default(CLIENT)
+  name           String
+  sector         String?
+  contactName    String?
+  email          String?
+  phone          String?
+  address        String?      @default("Dakar, Sénégal")
+  city           String?      @default("Dakar")
+  country        String?      @default("Sénégal")
+  taxId          String?
+  notes          String?
+  tags           String[]     @default([])
+  archivedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  documents      Document[]
+
+  @@index([organizationId, name])
+}
+
+model Document {
+  id               String          @id @default(uuid())
+  organizationId   String
+  clientId         String
+  type             DocumentType
+  reference        String
+  title            String
+  intro            String?
+  status           DocumentStatus  @default(DRAFT)
+  issueDate        DateTime        @default(now())
+  dueDate          DateTime?
+  validityDays     Int?            @default(30)
+  currency         String          @default("FCFA")
+  taxRate          Decimal         @default(0.0) @db.Decimal(5, 2)
+  discountPercent  Decimal         @default(0.0) @db.Decimal(5, 2)
+  depositAmount    Decimal         @default(0.0) @db.Decimal(12, 2)
+  conditions       String?
+  notes            String?
+  templateId       String?
+  sourceDocumentId String?
+  createdById      String?
+  updatedById      String?
+  sentAt           DateTime?
+  acceptedAt       DateTime?
+  paidAt           DateTime?
+  archivedAt       DateTime?
+  options          Json?           @default("{\"showSignature\":true,\"showTax\":false,\"coverPage\":false}")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  client           Client          @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  lines            DocumentLine[]
+  sections         DocumentSection[]
+  versions         DocumentVersion[]
+  payments         Payment[]
+
+  @@unique([organizationId, reference])
+  @@index([organizationId, type, status])
+}
+
+model DocumentLine {
+  id          String   @id @default(cuid())
+  documentId  String
+  position    Int      @default(0)
+  name        String
+  description String?
+  quantity    Decimal  @default(1.0) @db.Decimal(10, 2)
+  unitPrice   Decimal  @default(0.0) @db.Decimal(12, 2)
+  taxRate     Decimal? @db.Decimal(5, 2)
+
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, position])
+}
+
+model DocumentSection {
+  id          String   @id @default(cuid())
+  documentId  String
+  position    Int      @default(0)
+  title       String
+  content     String
+  sectionType String   @default("standard")
+
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, position])
+}
+
+model DocumentVersion {
+  id            String   @id @default(cuid())
+  documentId    String
+  versionNumber Int
+  snapshot      Json
+  createdById   String?
+  createdAt     DateTime @default(now())
+
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId, versionNumber])
+}
+
+model Template {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  type           DocumentType
+  description    String?
+  structure      Json
+  isDefault      Boolean      @default(false)
+  isArchived     Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, type])
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  amount      Decimal  @db.Decimal(12, 2)
+  paidAt      DateTime @default(now())
+  method      String   @default("Virement")
+  reference   String?
+  note        String?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  invoice     Document @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+model ActivityLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  actorId        String?
+  entityType     String
+  entityId       String
+  action         String
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor          User?        @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, entityType, entityId])
+}
+
+model ServiceCatalogItem {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  category       String
+  description    String?
+  price          Decimal?     @db.Decimal(12, 2)
+  unit           String?      @default("prestation")
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, category])
+}

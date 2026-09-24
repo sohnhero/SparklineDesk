@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0b0c" />
+  <title>Sparkline Desk — Documents & Finance</title>
+  <link rel="icon" href="assets/sparkline-symbol.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand-wrap">
+        <img src="assets/sparkline-logo-white.svg" alt="Sparkline" class="brand-logo" />
+        <button class="icon-button sidebar-close" id="sidebarClose" aria-label="Fermer le menu">×</button>
+      </div>
+
+      <button class="primary-action" id="newDocumentBtn">
+        <span class="plus">＋</span>
+        <span>Nouveau document</span>
+      </button>
+
+      <nav class="main-nav" aria-label="Navigation principale">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span><span>Vue d'ensemble</span></button>
+        <button class="nav-item" data-view="documents"><span class="nav-icon">▤</span><span>Documents</span><span class="nav-count" id="documentsCount">0</span></button>
+        <button class="nav-item" data-view="clients"><span class="nav-icon">◉</span><span>Clients</span><span class="nav-count" id="clientsCount">0</span></button>
+        <button class="nav-item" data-view="templates"><span class="nav-icon">◇</span><span>Modèles</span></button>
+        <button class="nav-item" data-view="finance"><span class="nav-icon">₣</span><span>Finance</span></button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="workspace-card">
+        <div class="workspace-symbol"><img src="assets/sparkline-symbol.svg" alt="" /></div>
+        <div>
+          <div class="workspace-name">Sparkline Studio</div>
+          <div class="workspace-meta">Espace interne</div>
+        </div>
+        <span class="workspace-dot"></span>
+      </div>
+
+      <nav class="secondary-nav">
+        <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span><span>Paramètres</span></button>
+        <button class="nav-item" id="exportBackupBtn"><span class="nav-icon">⇩</span><span>Exporter les données</span></button>
+        <label class="nav-item file-label"><span class="nav-icon">⇧</span><span>Importer les données</span><input id="importBackupInput" type="file" accept="application/json" hidden /></label>
+      </nav>
+
+      <div class="sidebar-footer">SPARKLINE DESK <span>v1.0</span></div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button menu-button" id="menuButton" aria-label="Ouvrir le menu">☰</button>
+          <div>
+            <p class="eyebrow" id="pageEyebrow">ESPACE DE PILOTAGE</p>
+            <h1 id="pageTitle">Vue d'ensemble</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <div class="global-search">
+            <span>⌕</span>
+            <input id="globalSearch" type="search" placeholder="Rechercher un client, un document…" />
+            <kbd>⌘ K</kbd>
+          </div>
+          <button class="icon-button" id="quickNewClientBtn" title="Nouveau client">＋</button>
+          <button class="avatar-button" id="profileButton" aria-label="Profil">SL</button>
+        </div>
+      </header>
+
+      <main class="content" id="content">
+        <section class="view active" id="view-dashboard">
+          <div class="hero-panel">
+            <div class="hero-copy">
+              <span class="hero-kicker">SPARKLINE DESK</span>
+              <h2>Vos documents commerciaux,<br><em>sans repartir de zéro.</em></h2>
+              <p>Créez, adaptez, suivez et exportez devis, factures, propositions et contrats dans une seule interface.</p>
+              <div class="hero-actions">
+                <button class="btn btn-light" id="heroNewDoc">Créer un document</button>
+                <button class="btn btn-ghost-light" data-view-target="templates">Voir les modèles</button>
+              </div>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+              <div class="hero-orbit orbit-one"></div>
+              <div class="hero-orbit orbit-two"></div>
+              <img src="assets/sparkline-symbol.svg" alt="" />
+            </div>
+          </div>
+
+          <div class="stats-grid" id="statsGrid"></div>
+
+          <div class="dashboard-grid">
+            <section class="panel span-2">
+              <div class="panel-head">
+                <div><span class="section-kicker">ACTIVITÉ</span><h3>Documents récents</h3></div>
+                <button class="text-button" data-view-target="documents">Tout afficher →</button>
+              </div>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead><tr><th>Document</th><th>Client</th><th>Montant</th><th>Statut</th><th>Date</th><th></th></tr></thead>
+                  <tbody id="recentDocumentsBody"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div><span class="section-kicker">À SUIVRE</span><h3>Encaissements</h3></div>
+              </div>
+              <div id="paymentFollowup" class="followup-list"></div>
+            </section>
+          </div>
+
+          <section class="panel quick-create-panel">
+            <div class="panel-head">
+              <div><span class="section-kicker">CRÉATION RAPIDE</span><h3>Que voulez-vous préparer ?</h3></div>
+            </div>
+            <div class="quick-grid" id="quickCreateGrid"></div>
+          </section>
+        </section>
+
+        <section class="view" id="view-documents">
+          <div class="view-toolbar">
+            <div class="toolbar-filters">
+              <select id="documentTypeFilter" class="control"><option value="all">Tous les types</option></select>
+              <select id="documentStatusFilter" class="control"><option value="all">Tous les statuts</option><option>Brouillon</option><option>Envoyé</option><option>Accepté</option><option>Payé</option><option>Refusé</option><option>Expiré</option></select>
+            </div>
+            <button class="btn btn-dark" id="documentsNewBtn">＋ Nouveau document</button>
+          </div>
+          <div class="panel documents-panel">
+            <div class="list-search"><span>⌕</span><input id="documentsSearch" type="search" placeholder="Filtrer les documents…" /></div>
+            <div class="table-wrap">
+              <table class="data-table roomy">
+                <thead><tr><th>Référence</th><th>Type</th><th>Client</th><th>Objet</th><th>Montant</th><th>Statut</th><th>Mise à jour</th><th></th></tr></thead>
+                <tbody id="documentsBody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="documentsEmpty" hidden><div class="empty-icon">▤</div><h3>Aucun document</h3><p>Créez votre premier document Sparkline.</p><button class="btn btn-dark" id="emptyNewDoc">Créer un document</button></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-clients">
+          <div class="view-toolbar">
+            <div class="list-search wide"><span>⌕</span><input id="clientsSearch" type="search" placeholder="Rechercher une entreprise ou un contact…" /></div>
+            <button class="btn btn-dark" id="newClientBtn">＋ Nouveau client</button>
+          </div>
+          <div class="client-grid" id="clientGrid"></div>
+          <div class="empty-state panel" id="clientsEmpty" hidden><div class="empty-icon">◉</div><h3>Aucun client</h3><p>Ajoutez vos clients pour préremplir tous vos futurs documents.</p></div>
+        </section>
+
+        <section class="view" id="view-templates">
+          <div class="templates-intro">
+            <span class="section-kicker">BIBLIOTHÈQUE SPARKLINE</span>
+            <h2>Des modèles prêts à adapter.</h2>
+            <p>Chaque modèle utilise la charte Sparkline et préremplit une structure adaptée au contexte.</p>
+          </div>
+          <div class="template-grid" id="templateGrid"></div>
+        </section>
+
+        <section class="view" id="view-finance">
+          <div class="finance-summary" id="financeSummary"></div>
+          <div class="dashboard-grid finance-grid">
+            <section class="panel span-2">
+              <div class="panel-head"><div><span class="section-kicker">CHIFFRE D'AFFAIRES</span><h3>Facturation par mois</h3></div></div>
+              <div class="bar-chart" id="revenueChart"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-head"><div><span class="section-kicker">RÉPARTITION</span><h3>Par statut</h3></div></div>
+              <div id="financeStatusList" class="status-breakdown"></div>
+            </section>
+          </div>
+          <section class="panel">
+            <div class="panel-head"><div><span class="section-kicker">FACTURES</span><h3>Suivi des paiements</h3></div></div>
+            <div class="table-wrap"><table class="data-table roomy"><thead><tr><th>Facture</th><th>Client</th><th>Total</th><th>Échéance</th><th>Statut</th><th></th></tr></thead><tbody id="invoiceTrackingBody"></tbody></table></div>
+          </section>
+        </section>
+
+        <section class="view" id="view-settings">
+          <div class="settings-grid">
+            <section class="panel settings-card">
+              <div class="panel-head"><div><span class="section-kicker">ENTREPRISE</span><h3>Informations Sparkline</h3></div></div>
+              <form id="companySettingsForm" class="form-grid two-cols"></form>
+            </section>
+            <section class="panel settings-card">
+              <div class="panel-head"><div><span class="section-kicker">DOCUMENTS</span><h3>Préférences</h3></div></div>
+              <form id="documentSettingsForm" class="form-grid"></form>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden></div>
+
+  <section class="modal" id="documentTypeModal" hidden aria-modal="true" role="dialog">
+    <div class="modal-head"><div><span class="section-kicker">NOUVEAU DOCUMENT</span><h2>Choisir un format</h2></div><button class="icon-button modal-close" data-close-modal>×</button></div>
+    <p class="modal-intro">Commencez avec une structure prête à l'emploi. Vous pourrez tout personnaliser ensuite.</p>
+    <div class="doc-type-grid" id="documentTypeGrid"></div>
+  </section>
+
+  <section class="modal compact-modal" id="clientModal" hidden aria-modal="true" role="dialog">
+    <div class="modal-head"><div><span class="section-kicker">CLIENT</span><h2 id="clientModalTitle">Nouveau client</h2></div><button class="icon-button modal-close" data-close-modal>×</button></div>
+    <form id="clientForm" class="form-grid two-cols"></form>
+  </section>
+
+  <section class="editor-shell" id="documentEditor" hidden>
+    <header class="editor-topbar">
+      <div class="editor-topbar-left">
+        <button class="icon-button" id="closeEditorBtn">←</button>
+        <div><span class="editor-badge" id="editorTypeBadge">DEVIS</span><strong id="editorReference">—</strong></div>
+      </div>
+      <div class="editor-actions">
+        <span class="autosave" id="autosaveIndicator">● Enregistré</span>
+        <button class="btn btn-outline" id="duplicateDocBtn">Dupliquer</button>
+        <button class="btn btn-outline" id="printDocBtn">Imprimer / PDF</button>
+        <button class="btn btn-dark" id="saveDocBtn">Enregistrer</button>
+      </div>
+    </header>
+    <div class="editor-layout">
+      <aside class="editor-form-pane">
+        <div class="editor-tabs">
+          <button class="editor-tab active" data-editor-tab="content">Contenu</button>
+          <button class="editor-tab" data-editor-tab="style">Options</button>
+        </div>
+        <form id="documentForm" autocomplete="off"></form>
+      </aside>
+      <main class="editor-preview-pane">
+        <div class="preview-toolbar">
+          <div class="zoom-group"><button class="icon-button small" id="zoomOutBtn">−</button><span id="zoomLabel">80%</span><button class="icon-button small" id="zoomInBtn">＋</button></div>
+          <span class="preview-hint">Aperçu A4 • mise à jour en direct</span>
+        </div>
+        <div class="preview-scroll">
+          <article class="document-page" id="documentPreview"></article>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
