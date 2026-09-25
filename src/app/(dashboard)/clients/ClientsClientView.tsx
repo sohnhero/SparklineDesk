@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { toast } from 'react-toastify';
 import { formatMoney, initials } from '@/lib/utils/format';
 import { STATUS_MAP } from '@/domains/documents/types';
+import { MobileTableAccordion, MobileTableItem } from '@/components/ui/MobileTableAccordion';
 
 export interface ClientDocItem {
   id: string;
@@ -391,48 +392,100 @@ export function ClientsClientView({
                   Aucun document pour ce client pour le moment.
                 </div>
               ) : (
-                <div className="table-wrap" style={{ maxHeight: '250px', overflowY: 'auto' }}>
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Réf</th>
-                        <th>Titre</th>
-                        <th>Date</th>
-                        <th>Montant</th>
-                        <th>Statut</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {detailClient.documents.map((d) => (
-                        <tr key={d.id}>
-                          <td><strong>{d.reference}</strong></td>
-                          <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {d.title}
-                          </td>
-                          <td className="muted">{d.date}</td>
-                          <td>
-                            {d.amount !== undefined ? formatMoney(d.amount, currency) : '—'}
-                          </td>
-                          <td>
-                            <span className={`status-pill ${STATUS_MAP[d.status] || d.status}`}>
+                <>
+                  <div className="responsive-table-desktop">
+                    <div className="table-wrap" style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Réf</th>
+                            <th>Titre</th>
+                            <th>Date</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {detailClient.documents.map((d) => (
+                            <tr key={d.id}>
+                              <td><strong>{d.reference}</strong></td>
+                              <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {d.title}
+                              </td>
+                              <td className="muted">{d.date}</td>
+                              <td>
+                                {d.amount !== undefined ? formatMoney(d.amount, currency) : '—'}
+                              </td>
+                              <td>
+                                <span className={`status-pill ${STATUS_MAP[d.status] || d.status}`}>
+                                  {STATUS_MAP[d.status] || d.status}
+                                </span>
+                              </td>
+                              <td>
+                                <Link
+                                  href={`/documents/${d.id}`}
+                                  className="btn btn-outline"
+                                  style={{ padding: '3px 8px', fontSize: '10px' }}
+                                >
+                                  Ouvrir →
+                                </Link>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div className="responsive-table-mobile">
+                    <MobileTableAccordion
+                      items={detailClient.documents.map((d): MobileTableItem => ({
+                        id: d.id,
+                        primaryLabel: 'Document',
+                        primaryValue: d.reference,
+                        previewBadges: (
+                          <>
+                            {d.amount !== undefined && (
+                              <span style={{ fontSize: '12px', fontWeight: 700, color: '#18181b' }}>
+                                {formatMoney(d.amount, currency)}
+                              </span>
+                            )}
+                            <span className={`status-pill ${STATUS_MAP[d.status] || d.status}`} style={{ fontSize: '10px', padding: '2px 6px' }}>
                               {STATUS_MAP[d.status] || d.status}
                             </span>
-                          </td>
-                          <td>
-                            <Link
-                              href={`/documents/${d.id}`}
-                              className="btn btn-outline"
-                              style={{ padding: '3px 8px', fontSize: '10px' }}
-                            >
-                              Ouvrir →
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          </>
+                        ),
+                        fields: [
+                          { label: 'Référence', value: <strong style={{ color: '#0284c7' }}>{d.reference}</strong> },
+                          { label: 'Titre', value: d.title },
+                          { label: 'Date', value: d.date },
+                          {
+                            label: 'Montant',
+                            value: d.amount !== undefined ? <strong>{formatMoney(d.amount, currency)}</strong> : '—',
+                          },
+                          {
+                            label: 'Statut',
+                            value: (
+                              <span className={`status-pill ${STATUS_MAP[d.status] || d.status}`}>
+                                {STATUS_MAP[d.status] || d.status}
+                              </span>
+                            ),
+                          },
+                        ],
+                        actions: (
+                          <Link
+                            href={`/documents/${d.id}`}
+                            className="mobile-action-circle edit"
+                            title="Ouvrir le document"
+                          >
+                            <FileText size={15} strokeWidth={2} />
+                          </Link>
+                        ),
+                      }))}
+                    />
+                  </div>
+                </>
               )}
             </div>
 

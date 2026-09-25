@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { DocTypeKey, DocumentKind } from '@/domains/documents/types';
 import { DocumentTypeModal } from '@/components/ui/DocumentTypeModal';
-import { TemplateRealisticPreview } from './TemplateRealisticPreview';
+import { TemplateCardCover } from './TemplateCardCover';
 
 export interface TemplateItem {
   key: DocTypeKey;
@@ -205,19 +205,18 @@ export function TemplatesClientView({ templates, currency = 'FCFA' }: TemplatesC
           <div className="template-grid" id="templateGrid">
             {paginatedTemplates.map((tpl) => (
               <article key={tpl.key} className="template-card">
-                {/* Realistic Document Preview */}
+                {/* Personalized Custom Graphic Cover */}
                 <div
                   className="template-preview"
                   onClick={() => handleUseTemplate(tpl.key)}
                   style={{ cursor: 'pointer' }}
                   title="Cliquer pour utiliser ce modèle"
                 >
-                  <TemplateRealisticPreview
+                  <TemplateCardCover
                     typeKey={tpl.key}
                     label={tpl.label}
                     prefix={tpl.prefix || 'DOC'}
                     kind={tpl.kind || 'financial'}
-                    currency={currency}
                   />
                 </div>
 
@@ -239,7 +238,7 @@ export function TemplatesClientView({ templates, currency = 'FCFA' }: TemplatesC
                     onClick={() => handleUseTemplate(tpl.key)}
                   >
                     <Plus size={13} strokeWidth={2.2} />
-                    <span>Utiliser ce modèle</span>
+                    <span>Utiliser<span className="template-btn-extra"> ce modèle</span></span>
                   </button>
                 </div>
               </article>

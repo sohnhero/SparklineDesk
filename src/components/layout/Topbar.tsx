@@ -73,7 +73,18 @@ export function Topbar({
         </div>
         <button
           type="button"
-          className="icon-button"
+          className="icon-button mobile-search-button"
+          id="mobileSearchBtn"
+          title="Rechercher"
+          onClick={onOpenSearch}
+          aria-label="Rechercher"
+          style={{ display: 'none' }}
+        >
+          <Search size={16} strokeWidth={2} />
+        </button>
+        <button
+          type="button"
+          className="icon-button quick-new-client-btn"
           id="quickNewClientBtn"
           title="Nouveau client"
           onClick={onOpenNewClient}

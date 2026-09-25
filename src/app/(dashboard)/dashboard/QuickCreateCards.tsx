@@ -24,11 +24,12 @@ export function QuickCreateCards() {
               type="button"
               onClick={() => handleCardClick(key)}
               className="quick-card"
-              style={{ textAlign: 'left', cursor: 'pointer', border: '1px solid #e6e6e1', background: '#fafaf8' }}
             >
               <div className="q-icon">{meta.icon}</div>
-              <strong>{meta.label}</strong>
-              <span>{meta.description}</span>
+              <div className="quick-card-info">
+                <strong>{meta.label}</strong>
+                <span className="quick-card-desc">{meta.description}</span>
+              </div>
             </button>
           ))}
       </div>

@@ -8,6 +8,7 @@ import { calculateDocumentTotals } from '@/lib/utils/calculations';
 import { TYPE_META, DocTypeKey, ENUM_TO_KEY, STATUS_MAP } from '@/domains/documents/types';
 import { DashboardClientActions } from './DashboardClientActions';
 import { QuickCreateCards } from './QuickCreateCards';
+import { MobileTableAccordion, MobileTableItem } from '@/components/ui/MobileTableAccordion';
 
 export const dynamic = 'force-dynamic';
 
@@ -186,27 +187,98 @@ export default async function DashboardPage() {
               Tout afficher →
             </Link>
           </div>
-          <div className="table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Document</th>
-                  <th>Client</th>
-                  <th>Montant</th>
-                  <th>Statut</th>
-                  <th>Date</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {recentDocs.length === 0 ? (
+          {recentDocs.length === 0 ? (
+            <div className="table-wrap">
+              <table className="data-table">
+                <tbody>
                   <tr>
                     <td colSpan={6} className="muted">
                       Aucun document enregistré.
                     </td>
                   </tr>
-                ) : (
-                  recentDocs.map((doc) => {
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="responsive-table-desktop">
+                <div className="table-wrap">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Document</th>
+                        <th>Client</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                        <th />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentDocs.map((doc) => {
+                        const typeKey = (ENUM_TO_KEY[doc.type] || 'quote') as DocTypeKey;
+                        const meta = TYPE_META[typeKey];
+                        const isFinancial = meta?.kind === 'financial';
+                        const totals = isFinancial
+                          ? calculateDocumentTotals({
+                            items: doc.lines.map((l) => ({
+                              qty: Number(l.quantity),
+                              price: Number(l.unitPrice),
+                            })),
+                            discount: Number(doc.discountPercent),
+                            taxRate: Number(doc.taxRate),
+                            deposit: Number(doc.depositAmount),
+                          })
+                          : null;
+                        const statusLabel = STATUS_MAP[doc.status] || doc.status;
+
+                        return (
+                          <tr key={doc.id}>
+                            <td>
+                              <div className="doc-main">
+                                <div className="doc-icon">{meta?.icon || 'DO'}</div>
+                                <div>
+                                  <div className="doc-title">
+                                    {doc.title || meta?.label}
+                                  </div>
+                                  <div className="doc-sub">{doc.reference}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td>{doc.client?.name || '—'}</td>
+                            <td className="amount-cell">
+                              {totals ? formatMoney(totals.grossTotal, currency) : '—'}
+                            </td>
+                            <td>
+                              <span className={`status-pill ${doc.status}`}>
+                                {statusLabel}
+                              </span>
+                            </td>
+                            <td className="muted">{formatDate(doc.updatedAt)}</td>
+                            <td>
+                              <div className="row-actions">
+                                <Link
+                                  href={`/documents/${doc.id}`}
+                                  className="mini-action"
+                                  title="Ouvrir l'éditeur"
+                                >
+                                  ↗
+                                </Link>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Mobile / Tablet Accordion View */}
+              <div className="responsive-table-mobile">
+                <MobileTableAccordion
+                  items={recentDocs.map((doc): MobileTableItem => {
                     const typeKey = (ENUM_TO_KEY[doc.type] || 'quote') as DocTypeKey;
                     const meta = TYPE_META[typeKey];
                     const isFinancial = meta?.kind === 'financial';
@@ -223,47 +295,51 @@ export default async function DashboardPage() {
                       : null;
                     const statusLabel = STATUS_MAP[doc.status] || doc.status;
 
-                    return (
-                      <tr key={doc.id}>
-                        <td>
-                          <div className="doc-main">
-                            <div className="doc-icon">{meta?.icon || 'DO'}</div>
-                            <div>
-                              <div className="doc-title">
-                                {doc.title || meta?.label}
-                              </div>
-                              <div className="doc-sub">{doc.reference}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>{doc.client?.name || '—'}</td>
-                        <td className="amount-cell">
-                          {totals ? formatMoney(totals.grossTotal, currency) : '—'}
-                        </td>
-                        <td>
-                          <span className={`status-pill ${doc.status}`}>
+                    return {
+                      id: doc.id,
+                      primaryLabel: 'Document',
+                      primaryValue: doc.title || doc.reference,
+                      previewBadges: (
+                        <>
+                          {totals && (
+                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#18181b' }}>
+                              {formatMoney(totals.grossTotal, currency)}
+                            </span>
+                          )}
+                          <span className={`status-pill ${doc.status}`} style={{ fontSize: '10.5px', padding: '2px 7px' }}>
                             {statusLabel}
                           </span>
-                        </td>
-                        <td className="muted">{formatDate(doc.updatedAt)}</td>
-                        <td>
-                          <div className="row-actions">
-                            <Link
-                              href={`/documents/${doc.id}`}
-                              className="mini-action"
-                              title="Ouvrir l'éditeur"
-                            >
-                              ↗
-                            </Link>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                        </>
+                      ),
+                      fields: [
+                        { label: 'Référence', value: <strong style={{ color: '#0284c7' }}>{doc.reference}</strong> },
+                        { label: 'Type', value: <span className="doc-type-badge">{meta?.label || doc.type}</span> },
+                        { label: 'Client', value: <strong>{doc.client?.name || '—'}</strong> },
+                        {
+                          label: 'Montant',
+                          value: totals ? <strong>{formatMoney(totals.grossTotal, currency)}</strong> : '—',
+                        },
+                        {
+                          label: 'Statut',
+                          value: <span className={`status-pill ${doc.status}`}>{statusLabel}</span>,
+                        },
+                        { label: 'Mise à jour', value: formatDate(doc.updatedAt) },
+                      ],
+                      actions: (
+                        <Link
+                          href={`/documents/${doc.id}`}
+                          className="mobile-action-circle edit"
+                          title="Ouvrir l'éditeur"
+                        >
+                          <ArrowRight size={15} strokeWidth={2.2} />
+                        </Link>
+                      ),
+                    };
+                  })}
+                />
+              </div>
+            </>
+          )}
         </section>
 
         <section className="panel">

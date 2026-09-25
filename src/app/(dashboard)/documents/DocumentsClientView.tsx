@@ -14,9 +14,13 @@ import {
   ChevronRight,
   X,
   RotateCcw,
+  Layers,
+  CircleDot,
 } from 'lucide-react';
 import { TYPE_META, DocTypeKey } from '@/domains/documents/types';
 import { DocumentTypeModal } from '@/components/ui/DocumentTypeModal';
+import { MobileTableAccordion, MobileTableItem } from '@/components/ui/MobileTableAccordion';
+import { FilterDropdown, FilterOption } from '@/components/ui/FilterDropdown';
 import { formatMoney, formatDate } from '@/lib/utils/format';
 import { toast } from 'react-toastify';
 
@@ -132,44 +136,50 @@ export function DocumentsClientView({
   const startIndex = filteredDocs.length === 0 ? 0 : (validPage - 1) * ITEMS_PER_PAGE + 1;
   const endIndex = Math.min(validPage * ITEMS_PER_PAGE, filteredDocs.length);
 
+  const typeOptions: FilterOption[] = useMemo(() => [
+    { value: 'all', label: 'Tous les types', count: documents.length },
+    ...(Object.entries(TYPE_META) as [DocTypeKey, typeof TYPE_META[DocTypeKey]][]).map(([k, m]) => {
+      const count = documents.filter((d) => d.typeKey === k).length;
+      return {
+        value: k,
+        label: m.label,
+        count: count > 0 ? count : undefined,
+      };
+    }),
+  ], [documents]);
+
+  const statusOptions: FilterOption[] = useMemo(() => [
+    { value: 'all', label: 'Tous les statuts' },
+    { value: 'Brouillon', label: 'Brouillon', dotColor: '#71717a' },
+    { value: 'Envoyé', label: 'Envoyé', dotColor: '#2563eb' },
+    { value: 'Accepté', label: 'Accepté', dotColor: '#059669' },
+    { value: 'Payé', label: 'Payé', dotColor: '#16a34a' },
+    { value: 'Refusé', label: 'Refusé', dotColor: '#dc2626' },
+    { value: 'Expiré', label: 'Expiré', dotColor: '#ea580c' },
+  ], []);
+
   return (
     <section className="view active" id="view-documents">
       {/* Top Toolbar */}
       <div className="view-toolbar">
         <div className="toolbar-filters">
-          <select
+          <FilterDropdown
             id="documentTypeFilter"
-            className="control"
+            label="Type"
+            icon={<Layers size={13} strokeWidth={2} />}
             value={typeFilter}
-            onChange={(e) => handleTypeFilterChange(e.target.value)}
-          >
-            <option value="all">Tous les types ({documents.length})</option>
-            {(Object.entries(TYPE_META) as [DocTypeKey, typeof TYPE_META[DocTypeKey]][]).map(
-              ([k, m]) => {
-                const count = documents.filter((d) => d.typeKey === k).length;
-                return (
-                  <option key={k} value={k}>
-                    {m.label} {count > 0 ? `(${count})` : ''}
-                  </option>
-                );
-              }
-            )}
-          </select>
+            options={typeOptions}
+            onChange={handleTypeFilterChange}
+          />
 
-          <select
+          <FilterDropdown
             id="documentStatusFilter"
-            className="control"
+            label="Statut"
+            icon={<CircleDot size={13} strokeWidth={2} />}
             value={statusFilter}
-            onChange={(e) => handleStatusFilterChange(e.target.value)}
-          >
-            <option value="all">Tous les statuts</option>
-            <option value="Brouillon">Brouillon</option>
-            <option value="Envoyé">Envoyé</option>
-            <option value="Accepté">Accepté</option>
-            <option value="Payé">Payé</option>
-            <option value="Refusé">Refusé</option>
-            <option value="Expiré">Expiré</option>
-          </select>
+            options={statusOptions}
+            onChange={handleStatusFilterChange}
+          />
         </div>
 
         <button
@@ -247,85 +257,156 @@ export function DocumentsClientView({
           )
         ) : (
           <>
-            <div className="table-wrap">
-              <table className="data-table roomy">
-                <thead>
-                  <tr>
-                    <th>Référence</th>
-                    <th>Type</th>
-                    <th>Client</th>
-                    <th>Objet</th>
-                    <th>Montant</th>
-                    <th>Statut</th>
-                    <th>Mise à jour</th>
-                    <th style={{ textAlign: 'right' }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="documentsBody">
-                  {paginatedDocs.map((d) => (
-                    <tr key={d.id}>
-                      <td>
-                        <div className="doc-main">
-                          <div className="doc-icon">{d.typeIcon}</div>
-                          <div>
-                            <div className="doc-title">{d.reference}</div>
-                            <div className="doc-sub">{formatDate(d.date)}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="doc-type-badge">{d.typeLabel}</span>
-                      </td>
-                      <td>
-                        <strong style={{ fontWeight: 600, color: '#18181b' }}>{d.clientName}</strong>
-                      </td>
-                      <td style={{ maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {d.title}
-                      </td>
-                      <td className="amount-cell">
-                        {d.isFinancial && d.amount !== null
-                          ? formatMoney(d.amount, currency)
-                          : '—'}
-                      </td>
-                      <td>
-                        <span className={`status-pill ${d.statusEnum}`}>
-                          {d.status}
-                        </span>
-                      </td>
-                      <td className="muted font-mono" style={{ fontSize: '11px' }}>
-                        {formatDate(d.updatedAt)}
-                      </td>
-                      <td>
-                        <div className="row-actions" style={{ justifyContent: 'flex-end', gap: '4px' }}>
-                          <Link
-                            href={`/documents/${d.id}`}
-                            className="mini-action"
-                            title="Modifier ce document"
-                          >
-                            <Pencil size={13} strokeWidth={2} />
-                          </Link>
-                          <button
-                            type="button"
-                            className="mini-action"
-                            title="Dupliquer ce document"
-                            onClick={() => handleDuplicate(d.id)}
-                          >
-                            <Copy size={13} strokeWidth={2} />
-                          </button>
-                          <button
-                            type="button"
-                            className="mini-action danger"
-                            title="Supprimer ce document"
-                            onClick={() => handleDelete(d)}
-                          >
-                            <Trash2 size={13} strokeWidth={2} />
-                          </button>
-                        </div>
-                      </td>
+            {/* Desktop Table View */}
+            <div className="responsive-table-desktop">
+              <div className="table-wrap">
+                <table className="data-table roomy">
+                  <thead>
+                    <tr>
+                      <th>Référence</th>
+                      <th>Type</th>
+                      <th>Client</th>
+                      <th>Objet</th>
+                      <th>Montant</th>
+                      <th>Statut</th>
+                      <th>Mise à jour</th>
+                      <th style={{ textAlign: 'right' }}>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody id="documentsBody">
+                    {paginatedDocs.map((d) => (
+                      <tr key={d.id}>
+                        <td>
+                          <div className="doc-main">
+                            <div className="doc-icon">{d.typeIcon}</div>
+                            <div>
+                              <div className="doc-title">{d.reference}</div>
+                              <div className="doc-sub">{formatDate(d.date)}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="doc-type-badge">{d.typeLabel}</span>
+                        </td>
+                        <td>
+                          <strong style={{ fontWeight: 600, color: '#18181b' }}>{d.clientName}</strong>
+                        </td>
+                        <td style={{ maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {d.title}
+                        </td>
+                        <td className="amount-cell">
+                          {d.isFinancial && d.amount !== null
+                            ? formatMoney(d.amount, currency)
+                            : '—'}
+                        </td>
+                        <td>
+                          <span className={`status-pill ${d.statusEnum}`}>
+                            {d.status}
+                          </span>
+                        </td>
+                        <td className="muted font-mono" style={{ fontSize: '11px' }}>
+                          {formatDate(d.updatedAt)}
+                        </td>
+                        <td>
+                          <div className="row-actions" style={{ justifyContent: 'flex-end', gap: '4px' }}>
+                            <Link
+                              href={`/documents/${d.id}`}
+                              className="mini-action"
+                              title="Modifier ce document"
+                            >
+                              <Pencil size={13} strokeWidth={2} />
+                            </Link>
+                            <button
+                              type="button"
+                              className="mini-action"
+                              title="Dupliquer ce document"
+                              onClick={() => handleDuplicate(d.id)}
+                            >
+                              <Copy size={13} strokeWidth={2} />
+                            </button>
+                            <button
+                              type="button"
+                              className="mini-action danger"
+                              title="Supprimer ce document"
+                              onClick={() => handleDelete(d)}
+                            >
+                              <Trash2 size={13} strokeWidth={2} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Mobile / Tablet Accordion View */}
+            <div className="responsive-table-mobile">
+              <MobileTableAccordion
+                items={paginatedDocs.map((d): MobileTableItem => ({
+                  id: d.id,
+                  primaryLabel: 'Document',
+                  primaryValue: d.reference,
+                  previewBadges: (
+                    <>
+                      {d.isFinancial && d.amount !== null && (
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#18181b' }}>
+                          {formatMoney(d.amount, currency)}
+                        </span>
+                      )}
+                      <span className={`status-pill ${d.statusEnum}`} style={{ fontSize: '10.5px', padding: '2px 7px' }}>
+                        {d.status}
+                      </span>
+                    </>
+                  ),
+                  fields: [
+                    { label: 'Référence', value: <strong style={{ color: '#0284c7' }}>{d.reference}</strong> },
+                    { label: 'Type', value: <span className="doc-type-badge">{d.typeLabel}</span> },
+                    { label: 'Client', value: <strong>{d.clientName}</strong> },
+                    { label: 'Objet', value: d.title || '—' },
+                    {
+                      label: 'Montant',
+                      value: d.isFinancial && d.amount !== null ? (
+                        <strong style={{ fontSize: '13px' }}>{formatMoney(d.amount, currency)}</strong>
+                      ) : '—',
+                    },
+                    {
+                      label: 'Statut',
+                      value: <span className={`status-pill ${d.statusEnum}`}>{d.status}</span>,
+                    },
+                    { label: 'Émission', value: formatDate(d.date) },
+                    { label: 'Mise à jour', value: formatDate(d.updatedAt) },
+                  ],
+                  actions: (
+                    <>
+                      <button
+                        type="button"
+                        className="mobile-action-circle danger"
+                        title="Supprimer ce document"
+                        onClick={() => handleDelete(d)}
+                      >
+                        <Trash2 size={15} strokeWidth={2} />
+                      </button>
+                      <Link
+                        href={`/documents/${d.id}`}
+                        className="mobile-action-circle edit"
+                        title="Modifier ce document"
+                      >
+                        <Pencil size={15} strokeWidth={2} />
+                      </Link>
+                      <button
+                        type="button"
+                        className="mobile-action-circle secondary"
+                        title="Dupliquer ce document"
+                        onClick={() => handleDuplicate(d.id)}
+                      >
+                        <Copy size={15} strokeWidth={2} />
+                      </button>
+                    </>
+                  ),
+                }))}
+              />
             </div>
 
             {/* Pagination Controls */}

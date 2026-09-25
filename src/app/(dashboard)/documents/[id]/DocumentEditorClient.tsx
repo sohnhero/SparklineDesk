@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Minus, Sparkles, UserPlus, Wand2, Loader2, CheckCircle2, Bot } from 'lucide-react';
+import { Plus, Minus, BookOpen, UserPlus, Wand2, Loader2, CheckCircle2, Bot } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { TYPE_META, DocTypeKey } from '@/domains/documents/types';
 import { DocumentPreview } from '@/components/preview/DocumentPreview';
@@ -389,7 +389,7 @@ export function DocumentEditorClient({
     clone.style.transform = 'none';
     clone.style.webkitTransform = 'none';
     clone.style.width = '210mm';
-    clone.style.minHeight = '297mm';
+    clone.style.minHeight = 'auto';
     clone.style.boxShadow = 'none';
     clone.style.margin = '0';
     clone.style.padding = '0';
@@ -668,7 +668,7 @@ export function DocumentEditorClient({
             }}
             title="Assistant IA Gemini Pro pour compléter et rédiger votre document"
           >
-            <Sparkles size={13} strokeWidth={2.2} />
+            <Bot size={13} strokeWidth={2.2} />
             <span>Assistant IA</span>
           </button>
 
@@ -888,7 +888,7 @@ export function DocumentEditorClient({
                           {loadingAiField === 'intro' ? (
                             <Loader2 size={11} className="spin" />
                           ) : (
-                            <Sparkles size={11} strokeWidth={2.2} />
+                            <Wand2 size={11} strokeWidth={2.2} />
                           )}
                           <span>{doc.intro ? 'Améliorer avec l’IA' : 'Rédiger avec l’IA'}</span>
                         </button>
@@ -939,7 +939,7 @@ export function DocumentEditorClient({
                               gap: '5px',
                             }}
                           >
-                            <Sparkles size={12} strokeWidth={2.2} />
+                            <BookOpen size={12} strokeWidth={2.2} />
                             <span>Catalogue</span>
                           </button>
                           <button
@@ -1287,7 +1287,7 @@ export function DocumentEditorClient({
                           {loadingAiField === 'conditions' ? (
                             <Loader2 size={11} className="spin" />
                           ) : (
-                            <Sparkles size={11} strokeWidth={2.2} />
+                            <Wand2 size={11} strokeWidth={2.2} />
                           )}
                           <span>Rédiger avec l’IA</span>
                         </button>

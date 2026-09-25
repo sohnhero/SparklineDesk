@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, Loader2, CheckCircle2, Wand2 } from 'lucide-react';
+import { Bot, Loader2, CheckCircle2, Wand2 } from 'lucide-react';
 import { Modal } from './Modal';
 import { TYPE_META, DocTypeKey } from '@/domains/documents/types';
 import { toast } from 'react-toastify';
@@ -411,23 +411,18 @@ export function DocumentTypeModal({
                     className={`doc-type-card ${isSelected ? 'selected' : ''}`}
                     onClick={() => handleSelectFormatCard(key)}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div className="doc-type-icon">{meta.icon}</div>
-                      <span
-                        style={{
-                          fontSize: '9px',
-                          fontWeight: 800,
-                          padding: '2px 6px',
-                          background: meta.kind === 'financial' ? '#fff1e5' : '#f0f0ed',
-                          color: meta.kind === 'financial' ? 'var(--orange)' : '#444',
-                          borderRadius: '4px',
-                        }}
-                      >
-                        {meta.prefix}
-                      </span>
+                    <div className="doc-type-icon">{meta.icon}</div>
+                    <div className="doc-type-card-body">
+                      <div className="doc-type-card-title-row">
+                        <h3>{meta.label}</h3>
+                        <span
+                          className={`doc-type-pill ${meta.kind === 'financial' ? 'orange' : 'gray'}`}
+                        >
+                          {meta.prefix}
+                        </span>
+                      </div>
+                      <p>{meta.description}</p>
                     </div>
-                    <h3>{meta.label}</h3>
-                    <p>{meta.description}</p>
                   </button>
                 );
               })}
@@ -565,7 +560,7 @@ export function DocumentTypeModal({
             <div className="ai-assistant-card">
               <div className="ai-assistant-header">
                 <div className="ai-badge">
-                  <Sparkles size={11} strokeWidth={2.2} />
+                  <Bot size={11} strokeWidth={2.2} />
                   <span>Copilote IA Gemini Pro</span>
                 </div>
                 <span className="ai-hint">Génération automatique des prestations, titre et conditions</span>

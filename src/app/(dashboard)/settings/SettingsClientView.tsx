@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
+import { MobileTableAccordion, MobileTableItem } from '@/components/ui/MobileTableAccordion';
 
 interface SettingsClientViewProps {
   initialCompany: {
@@ -423,31 +424,57 @@ export function SettingsClientView({
               <h3>Membres de l’organisation Sparkline</h3>
             </div>
           </div>
-          <div className="table-wrap">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  <th>E-mail</th>
-                  <th>Rôle</th>
-                  <th>Membre depuis</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map((u) => (
-                  <tr key={u.id}>
-                    <td>
-                      <strong>{u.name}</strong>
-                    </td>
-                    <td>{u.email}</td>
-                    <td>
-                      <span className="status-pill Payé">{u.role}</span>
-                    </td>
-                    <td className="muted">{u.createdAt.slice(0, 10)}</td>
+          <div className="responsive-table-desktop">
+            <div className="table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Nom</th>
+                    <th>E-mail</th>
+                    <th>Rôle</th>
+                    <th>Membre depuis</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u.id}>
+                      <td>
+                        <strong>{u.name}</strong>
+                      </td>
+                      <td>{u.email}</td>
+                      <td>
+                        <span className="status-pill Payé">{u.role}</span>
+                      </td>
+                      <td className="muted">{u.createdAt.slice(0, 10)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="responsive-table-mobile">
+            <MobileTableAccordion
+              items={users.map((u): MobileTableItem => ({
+                id: u.id,
+                primaryLabel: 'Membre',
+                primaryValue: u.name,
+                previewBadges: (
+                  <span className="status-pill Payé" style={{ fontSize: '10.5px', padding: '2px 7px' }}>
+                    {u.role}
+                  </span>
+                ),
+                fields: [
+                  { label: 'Nom', value: <strong>{u.name}</strong> },
+                  { label: 'E-mail', value: u.email },
+                  {
+                    label: 'Rôle',
+                    value: <span className="status-pill Payé">{u.role}</span>,
+                  },
+                  { label: 'Inscrit le', value: u.createdAt.slice(0, 10) },
+                ],
+              }))}
+            />
           </div>
         </section>
       </div>

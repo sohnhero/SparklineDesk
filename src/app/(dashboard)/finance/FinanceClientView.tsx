@@ -18,10 +18,14 @@ import {
   ChevronRight,
   X,
   RotateCcw,
+  Pencil,
+  CircleDot,
 } from 'lucide-react';
 import { formatMoney, formatDate } from '@/lib/utils/format';
 import { toast } from 'react-toastify';
 import { Modal } from '@/components/ui/Modal';
+import { MobileTableAccordion, MobileTableItem } from '@/components/ui/MobileTableAccordion';
+import { FilterDropdown, FilterOption } from '@/components/ui/FilterDropdown';
 
 export interface InvoiceTrackingItem {
   id: string;
@@ -79,6 +83,14 @@ export function FinanceClientView({
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+
+  const financeStatusOptions: FilterOption[] = useMemo(() => [
+    { value: 'all', label: 'Tous les statuts', count: invoices.length },
+    { value: 'Envoyé', label: 'À encaisser', dotColor: '#2563eb' },
+    { value: 'Payé', label: 'Payé', dotColor: '#16a34a' },
+    { value: 'Expiré', label: 'En retard', dotColor: '#ea580c' },
+    { value: 'Brouillon', label: 'Brouillon', dotColor: '#71717a' },
+  ], [invoices.length]);
   const [payingInvoice, setPayingInvoice] = useState<InvoiceTrackingItem | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('Wave');
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
@@ -468,18 +480,13 @@ export function FinanceClientView({
                 )}
               </div>
 
-              <select
-                className="control"
+              <FilterDropdown
+                label="Statut"
+                icon={<CircleDot size={13} strokeWidth={2} />}
                 value={statusFilter}
-                onChange={(e) => handleStatusFilterChange(e.target.value)}
-                style={{ fontSize: '11px', padding: '6px 10px' }}
-              >
-                <option value="all">Tous les statuts ({invoices.length})</option>
-                <option value="Envoyé">À encaisser (Envoyé)</option>
-                <option value="Payé">Payé</option>
-                <option value="Expiré">En retard</option>
-                <option value="Brouillon">Brouillon</option>
-              </select>
+                options={financeStatusOptions}
+                onChange={handleStatusFilterChange}
+              />
 
               <button
                 type="button"
@@ -499,21 +506,10 @@ export function FinanceClientView({
             </div>
           </div>
 
-          <div className="table-wrap">
-            <table className="data-table" id="financeTable">
-              <thead>
-                <tr>
-                  <th>Facture</th>
-                  <th>Client</th>
-                  <th>Émission</th>
-                  <th>Échéance</th>
-                  <th>Montant</th>
-                  <th>Statut</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredInvoices.length === 0 ? (
+          {filteredInvoices.length === 0 ? (
+            <div className="table-wrap">
+              <table className="data-table" id="financeTable">
+                <tbody>
                   <tr>
                     <td colSpan={7} style={{ textAlign: 'center', padding: '36px 20px', color: '#999' }}>
                       <div
@@ -555,74 +551,177 @@ export function FinanceClientView({
                       )}
                     </td>
                   </tr>
-                ) : (
-                  paginatedInvoices.map((inv) => {
-                    const isOverdue = inv.status !== 'Payé' && inv.dueDate && new Date(inv.dueDate) < new Date();
-                    const clientInitials = inv.clientName
-                      .split(' ')
-                      .map((w) => w[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase() || 'CL';
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <div className="responsive-table-desktop">
+                <div className="table-wrap">
+                  <table className="data-table" id="financeTable">
+                    <thead>
+                      <tr>
+                        <th>Facture</th>
+                        <th>Client</th>
+                        <th>Émission</th>
+                        <th>Échéance</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedInvoices.map((inv) => {
+                        const isOverdue = inv.status !== 'Payé' && inv.dueDate && new Date(inv.dueDate) < new Date();
+                        const clientInitials = inv.clientName
+                          .split(' ')
+                          .map((w) => w[0])
+                          .slice(0, 2)
+                          .join('')
+                          .toUpperCase() || 'CL';
 
-                    return (
-                      <tr key={inv.id} className="finance-table-row">
-                        <td>
-                          <Link href={`/documents/${inv.id}`} className="invoice-ref-link">
-                            <span className="doc-icon-mini">FAC</span>
-                            <span className="ref-text">{inv.reference}</span>
-                          </Link>
-                        </td>
-                        <td>
-                          <div className="client-cell">
-                            <div className="client-avatar-mini">{clientInitials}</div>
-                            <span className="client-name">{inv.clientName}</span>
-                          </div>
-                        </td>
-                        <td className="muted font-mono">{formatDate(inv.date)}</td>
-                        <td>
-                          {inv.dueDate ? (
+                        return (
+                          <tr key={inv.id} className="finance-table-row">
+                            <td>
+                              <Link href={`/documents/${inv.id}`} className="invoice-ref-link">
+                                <span className="doc-icon-mini">FAC</span>
+                                <span className="ref-text">{inv.reference}</span>
+                              </Link>
+                            </td>
+                            <td>
+                              <div className="client-cell">
+                                <div className="client-avatar-mini">{clientInitials}</div>
+                                <span className="client-name">{inv.clientName}</span>
+                              </div>
+                            </td>
+                            <td className="muted font-mono">{formatDate(inv.date)}</td>
+                            <td>
+                              {inv.dueDate ? (
+                                <span className={`due-date-tag ${isOverdue ? 'overdue' : ''}`}>
+                                  {isOverdue && <span className="overdue-dot" />}
+                                  {formatDate(inv.dueDate)}
+                                </span>
+                              ) : (
+                                <span className="muted">—</span>
+                              )}
+                            </td>
+                            <td>
+                              <strong className="amount-cell">{formatMoney(inv.amount, currency)}</strong>
+                            </td>
+                            <td>
+                              <span className={`status-pill ${inv.status}`}>
+                                {inv.status}
+                              </span>
+                            </td>
+                            <td>
+                              {inv.status !== 'Payé' ? (
+                                <button
+                                  type="button"
+                                  className="btn-pay-action"
+                                  onClick={() => handleOpenPayModal(inv)}
+                                  title="Enregistrer un règlement pour cette facture"
+                                >
+                                  <CreditCard size={12} strokeWidth={2.2} />
+                                  <span>Encaisser</span>
+                                </button>
+                              ) : (
+                                <span className="paid-badge">
+                                  <Check size={12} strokeWidth={2.5} />
+                                  <span>Payé</span>
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Mobile / Tablet Accordion */}
+              <div className="responsive-table-mobile">
+                <MobileTableAccordion
+                  items={paginatedInvoices.map((inv): MobileTableItem => {
+                    const isOverdue = inv.status !== 'Payé' && inv.dueDate && new Date(inv.dueDate) < new Date();
+                    return {
+                      id: inv.id,
+                      primaryLabel: 'Facture',
+                      primaryValue: inv.reference,
+                      previewBadges: (
+                        <>
+                          <span style={{ fontSize: '12px', fontWeight: 700, color: '#18181b' }}>
+                            {formatMoney(inv.amount, currency)}
+                          </span>
+                          <span className={`status-pill ${inv.status}`} style={{ fontSize: '10.5px', padding: '2px 7px' }}>
+                            {inv.status}
+                          </span>
+                        </>
+                      ),
+                      fields: [
+                        {
+                          label: 'Facture',
+                          value: (
+                            <Link href={`/documents/${inv.id}`} style={{ fontWeight: 600, color: '#0284c7' }}>
+                              {inv.reference}
+                            </Link>
+                          ),
+                        },
+                        { label: 'Client', value: <strong>{inv.clientName}</strong> },
+                        { label: 'Émission', value: formatDate(inv.date) },
+                        {
+                          label: 'Échéance',
+                          value: inv.dueDate ? (
                             <span className={`due-date-tag ${isOverdue ? 'overdue' : ''}`}>
                               {isOverdue && <span className="overdue-dot" />}
                               {formatDate(inv.dueDate)}
                             </span>
-                          ) : (
-                            <span className="muted">—</span>
-                          )}
-                        </td>
-                        <td>
-                          <strong className="amount-cell">{formatMoney(inv.amount, currency)}</strong>
-                        </td>
-                        <td>
-                          <span className={`status-pill ${inv.status}`}>
-                            {inv.status}
-                          </span>
-                        </td>
-                        <td>
+                          ) : '—',
+                        },
+                        {
+                          label: 'Montant',
+                          value: <strong>{formatMoney(inv.amount, currency)}</strong>,
+                        },
+                        {
+                          label: 'Statut',
+                          value: <span className={`status-pill ${inv.status}`}>{inv.status}</span>,
+                        },
+                      ],
+                      actions: (
+                        <>
+                          <Link
+                            href={`/documents/${inv.id}`}
+                            className="mobile-action-circle edit"
+                            title="Ouvrir la facture"
+                          >
+                            <Pencil size={15} strokeWidth={2} />
+                          </Link>
                           {inv.status !== 'Payé' ? (
                             <button
                               type="button"
                               className="btn-pay-action"
                               onClick={() => handleOpenPayModal(inv)}
-                              title="Enregistrer un règlement pour cette facture"
+                              title="Enregistrer un règlement"
+                              style={{ height: '34px', padding: '0 12px', borderRadius: '18px' }}
                             >
-                              <CreditCard size={12} strokeWidth={2.2} />
+                              <CreditCard size={13} strokeWidth={2.2} />
                               <span>Encaisser</span>
                             </button>
                           ) : (
-                            <span className="paid-badge">
-                              <Check size={12} strokeWidth={2.5} />
+                            <span className="paid-badge" style={{ height: '34px', padding: '0 12px', borderRadius: '18px' }}>
+                              <Check size={13} strokeWidth={2.5} />
                               <span>Payé</span>
                             </span>
                           )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                        </>
+                      ),
+                    };
+                  })}
+                />
+              </div>
+            </>
+          )}
 
           {/* Pagination Controls */}
           {totalPages > 1 && (

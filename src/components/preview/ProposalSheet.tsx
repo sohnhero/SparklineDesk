@@ -124,7 +124,7 @@ export function ProposalSheet({
               </div>
             </div>
           </div>
-          <div className="page-break-label">PAGE 2 — PROPOSITION DÉTAILLÉE</div>
+          <div className="page-break-label screen-only">PAGE 2 — PROPOSITION DÉTAILLÉE</div>
         </>
       )}
 
@@ -179,29 +179,31 @@ export function ProposalSheet({
           </div>
         )}
 
-        {doc.notes && (
-          <section className="proposal-section">
-            <h2>Conclusion</h2>
-            <p style={{ whiteSpace: 'pre-line' }}>{doc.notes}</p>
-          </section>
-        )}
+        <div className="proposal-closing-block">
+          {doc.notes && (
+            <section className="proposal-section conclusion-section">
+              <h2>Conclusion</h2>
+              <p style={{ whiteSpace: 'pre-line' }}>{doc.notes}</p>
+            </section>
+          )}
 
-        <footer className="doc-footer">
-          <div className="signature-block">
-            {showSignature && (
-              <div className="signature-line">Signature & validation</div>
-            )}
-          </div>
-          <div className="footer-contact">
-            <p>
-              <strong>{company.legalName}</strong>
-            </p>
-            <p>
-              {company.phone} · {company.email}
-            </p>
-            <p>{company.website}</p>
-          </div>
-        </footer>
+          <footer className="doc-footer">
+            <div className="signature-block">
+              {showSignature && (
+                <div className="signature-line">Signature & validation</div>
+              )}
+            </div>
+            <div className="footer-contact">
+              <p>
+                <strong>{company.legalName}</strong>
+              </p>
+              <p>
+                {company.phone} · {company.email}
+              </p>
+              <p>{company.website}</p>
+            </div>
+          </footer>
+        </div>
       </div>
     </>
   );
