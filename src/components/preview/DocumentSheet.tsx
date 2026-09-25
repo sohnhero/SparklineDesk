@@ -86,11 +86,21 @@ export function DocumentSheet({
           <h1 className={doc.type === 'invoice' ? 'invoice-title' : ''}>
             {doc.reference}
           </h1>
-          <p>Date : {formatDate(doc.issueDate)}</p>
-          {doc.dueDate && <p>Échéance : {formatDate(doc.dueDate)}</p>}
-          {doc.validityDays ? (
-            <p>Validité : {doc.validityDays} jours</p>
-          ) : null}
+          <div className="doc-meta-dates">
+            <span>Date : {formatDate(doc.issueDate)}</span>
+            {doc.dueDate && (
+              <>
+                <span className="dot-sep">·</span>
+                <span>Échéance : {formatDate(doc.dueDate)}</span>
+              </>
+            )}
+            {doc.validityDays ? (
+              <>
+                <span className="dot-sep">·</span>
+                <span>Validité : {doc.validityDays} jours</span>
+              </>
+            ) : null}
+          </div>
           {(doc.status === 'Payé' || doc.status === 'PAID') && (
             <span className="paid-stamp">PAYÉ</span>
           )}
@@ -202,32 +212,34 @@ export function DocumentSheet({
         </section>
       )}
 
-      {doc.notes && (
-        <div className="doc-callout">
-          <small>NOTE</small>
-          <h3>Pour la suite</h3>
-          <p style={{ whiteSpace: 'pre-line' }}>{doc.notes}</p>
-        </div>
-      )}
+      <div className="doc-closing-block">
+        {doc.notes && (
+          <div className="doc-callout">
+            <small>NOTE</small>
+            <h3>Pour la suite</h3>
+            <p style={{ whiteSpace: 'pre-line' }}>{doc.notes}</p>
+          </div>
+        )}
 
-      <footer className="doc-footer">
-        <div className="signature-block">
-          {showSignature && (
-            <div className="signature-line">Signature représentant SPARKLINE</div>
-          )}
-        </div>
-        <div className="footer-contact">
-          <p>
-            <strong>{company.legalName}</strong>
-          </p>
-          <p>
-            {company.address} · {company.phone}
-          </p>
-          <p>
-            {company.email} · {company.website}
-          </p>
-        </div>
-      </footer>
+        <footer className="doc-footer">
+          <div className="signature-block">
+            {showSignature && (
+              <div className="signature-line">Signature représentant SPARKLINE</div>
+            )}
+          </div>
+          <div className="footer-contact">
+            <p>
+              <strong>{company.legalName}</strong>
+            </p>
+            <p>
+              {company.address} · {company.phone}
+            </p>
+            <p>
+              {company.email} · {company.website}
+            </p>
+          </div>
+        </footer>
+      </div>
     </div>
   );
 }
