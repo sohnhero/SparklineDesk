@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import '@/styles/globals.css';
+import { ConfirmProvider } from '@/components/ui/ConfirmDialog';
 
 export const metadata: Metadata = {
   title: 'Sparkline Desk — Documents & Finance',
@@ -25,7 +26,9 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
-        {children}
+        <ConfirmProvider>
+          {children}
+        </ConfirmProvider>
         <ToastContainer 
           position="bottom-right"
           theme="dark"

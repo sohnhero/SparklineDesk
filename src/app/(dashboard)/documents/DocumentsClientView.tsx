@@ -23,6 +23,7 @@ import { MobileTableAccordion, MobileTableItem } from '@/components/ui/MobileTab
 import { FilterDropdown, FilterOption } from '@/components/ui/FilterDropdown';
 import { formatMoney, formatDate } from '@/lib/utils/format';
 import { toast } from 'react-toastify';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 export interface DocumentListItem {
   id: string;
@@ -58,6 +59,7 @@ export function DocumentsClientView({
   const [currentPage, setCurrentPage] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
   const router = useRouter();
+  const { confirm } = useConfirm();
   
   const filteredDocs = useMemo(() => {
     return documents.filter((doc) => {
@@ -118,7 +120,16 @@ export function DocumentsClientView({
   };
 
   const handleDelete = async (doc: DocumentListItem) => {
-    if (!confirm(`Supprimer le document ${doc.reference} ?`)) return;
+    const confirmed = await confirm({
+      title: 'Supprimer ce document ?',
+      description: `Êtes-vous sûr de vouloir supprimer définitivement le document ${doc.reference} (${doc.title || doc.typeLabel}) ? Cette action est irréversible.`,
+      highlight: doc.reference,
+      confirmText: 'Supprimer le document',
+      cancelText: 'Annuler',
+      variant: 'danger',
+      icon: 'trash',
+    });
+    if (!confirmed) return;
 
     try {
       const res = await fetch(`/api/documents/${doc.id}`, {
@@ -126,10 +137,10 @@ export function DocumentsClientView({
       });
       if (!res.ok) throw new Error('Échec suppression');
       setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
-      toast.success('Document supprimé.');
+      toast.success('Document supprimé avec succès.');
       router.refresh();
     } catch {
-      toast.success('Erreur lors de la suppression');
+      toast.error('Erreur lors de la suppression');
     }
   };
 

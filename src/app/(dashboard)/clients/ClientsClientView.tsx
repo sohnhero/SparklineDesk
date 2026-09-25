@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import { formatMoney, initials } from '@/lib/utils/format';
 import { STATUS_MAP } from '@/domains/documents/types';
 import { MobileTableAccordion, MobileTableItem } from '@/components/ui/MobileTableAccordion';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 export interface ClientDocItem {
   id: string;
@@ -53,6 +54,7 @@ export function ClientsClientView({
   const [docTypeModalOpen, setDocTypeModalOpen] = useState(false);
   const [targetClientId, setTargetClientId] = useState<string | null>(null);
   const router = useRouter();
+  const { confirm } = useConfirm();
   
   const filteredClients = clients.filter((c) => {
     const q = search.trim().toLowerCase();
@@ -132,9 +134,16 @@ export function ClientsClientView({
   };
 
   const handleDeleteClient = async (client: ClientViewData) => {
-    if (!confirm(`Supprimer le client « ${client.name} » ? Ses documents resteront archivés.`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: 'Supprimer ce client ?',
+      description: `Êtes-vous sûr de vouloir supprimer « ${client.name} » ? Ses documents existants resteront archivés dans votre historique.`,
+      highlight: client.name,
+      confirmText: 'Supprimer le client',
+      cancelText: 'Annuler',
+      variant: 'danger',
+      icon: 'trash',
+    });
+    if (!confirmed) return;
 
     try {
       const res = await fetch(`/api/clients/${client.id}`, {
@@ -149,10 +158,10 @@ export function ClientsClientView({
       if (detailClient?.id === client.id) {
         setDetailClient(null);
       }
-      toast.success('Client supprimé.');
+      toast.success('Client supprimé avec succès.');
       router.refresh();
     } catch (err: any) {
-      toast(err.message || 'Impossible de supprimer ce client');
+      toast.error(err.message || 'Impossible de supprimer ce client');
     }
   };
 

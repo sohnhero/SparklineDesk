@@ -2,13 +2,15 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Loader2, Mail, Lock, ArrowRight, Eye, EyeOff, ShieldCheck, Check } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('admin@sparkline.sn');
   const [password, setPassword] = useState('password123');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [copiedDemo, setCopiedDemo] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,292 +38,196 @@ export default function LoginPage() {
     }
   };
 
+  const handleFillDemo = () => {
+    setEmail('admin@sparkline.sn');
+    setPassword('password123');
+    setCopiedDemo(true);
+    setTimeout(() => setCopiedDemo(false), 2000);
+  };
+
   return (
-    <>
-      <style>{`
-        .login-wrapper {
-          min-height: 100vh;
-          background-color: #f4f4f5;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          overflow: hidden;
-          padding: 20px;
-          font-family: system-ui, -apple-system, sans-serif;
-        }
-        .login-glow {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 800px;
-          height: 600px;
-          background: rgba(249, 115, 22, 0.08);
-          border-radius: 50%;
-          filter: blur(100px);
-          pointer-events: none;
-        }
-        .login-container {
-          width: 100%;
-          max-width: 420px;
-          position: relative;
-          z-index: 10;
-          animation: slideUp 0.6s ease-out forwards;
-        }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .login-header {
-          text-align: center;
-          margin-bottom: 32px;
-        }
-        .login-logo {
-          width: 160px;
-          margin: 0 auto 24px;
-        }
-        .login-title {
-          font-size: 24px;
-          font-weight: 700;
-          color: #18181b;
-          margin: 0 0 6px 0;
-          letter-spacing: -0.5px;
-        }
-        .login-subtitle {
-          color: #71717a;
-          font-size: 14px;
-          margin: 0;
-        }
-        .login-card {
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(228, 228, 231, 0.8);
-          border-radius: 24px;
-          padding: 32px;
-          box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08);
-        }
-        .form-group {
-          margin-bottom: 20px;
-        }
-        .form-label {
-          display: block;
-          font-size: 12px;
-          font-weight: 600;
-          color: #52525b;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          margin-bottom: 8px;
-          margin-left: 4px;
-        }
-        .form-label-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 8px;
-          margin-left: 4px;
-        }
-        .form-link {
-          font-size: 12px;
-          color: #ea580c;
-          text-decoration: none;
-          font-weight: 500;
-        }
-        .form-link:hover {
-          color: #c2410c;
-        }
-        .input-wrapper {
-          position: relative;
-        }
-        .input-icon {
-          position: absolute;
-          left: 14px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: #a1a1aa;
-          transition: color 0.2s;
-        }
-        .input-wrapper:focus-within .input-icon {
-          color: #f97316;
-        }
-        .form-input {
-          width: 100%;
-          background: #ffffff;
-          border: 1px solid #d4d4d8;
-          border-radius: 12px;
-          padding: 12px 16px 12px 42px;
-          font-size: 14px;
-          color: #18181b;
-          outline: none;
-          transition: all 0.2s;
-          box-sizing: border-box;
-          box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-        }
-        .form-input::placeholder {
-          color: #a1a1aa;
-        }
-        .form-input:focus {
-          border-color: rgba(249, 115, 22, 0.5);
-          box-shadow: inset 0 2px 4px rgba(0,0,0,0.02), 0 0 0 3px rgba(249, 115, 22, 0.15);
-        }
-        .error-message {
-          background: #fef2f2;
-          border: 1px solid #fecaca;
-          color: #ef4444;
-          font-size: 12px;
-          font-weight: 500;
-          padding: 12px;
-          border-radius: 12px;
-          margin-bottom: 20px;
-          display: flex;
-          align-items: center;
-        }
-        .submit-btn {
-          width: 100%;
-          background: linear-gradient(to right, #f97316, #ea580c);
-          color: white;
-          border: none;
-          border-radius: 12px;
-          padding: 14px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: all 0.2s;
-          box-shadow: 0 8px 16px rgba(249, 115, 22, 0.2);
-        }
-        .submit-btn:hover:not(:disabled) {
-          background: linear-gradient(to right, #fb923c, #f97316);
-          box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
-          transform: translateY(-1px);
-        }
-        .submit-btn:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-          transform: none;
-        }
-        .submit-btn svg {
-          transition: transform 0.2s;
-        }
-        .submit-btn:hover:not(:disabled) svg {
-          transform: translateX(4px);
-        }
-        .login-footer {
-          margin-top: 32px;
-          padding-top: 24px;
-          border-top: 1px solid #e4e4e7;
-          text-align: center;
-        }
-        .footer-text {
-          font-size: 12px;
-          color: #71717a;
-          margin-bottom: 8px;
-        }
-        .footer-badge {
-          display: inline-block;
-          font-size: 12px;
-          color: #52525b;
-          background: #f4f4f5;
-          border: 1px solid #e4e4e7;
-          padding: 6px 12px;
-          border-radius: 8px;
-          font-weight: 600;
-        }
-      `}</style>
+    <div className="login-page-root">
+        <div className="login-split-card">
+          {/* LEFT HERO BANNER */}
+          <div className="login-hero-banner">
+            {/* Top Bar with Brand & Internal Badge */}
+            <div className="hero-top-bar">
+              <div className="hero-brand">
+                <img
+                  src="/assets/sparkline-logo-dark.svg"
+                  alt="Sparkline"
+                  className="hero-brand-logo"
+                />
+              </div>
+              <div className="hero-badge">
+                <span className="hero-badge-dot" />
+                <span>Espace interne</span>
+              </div>
+            </div>
 
-      <div className="login-wrapper">
-        <div className="login-glow" />
+            {/* Middle Feature Chips (Floating aesthetic cards) */}
+            <div className="hero-middle-features">
+              <div className="hero-feature-chip">
+                <span className="hero-feature-dot" />
+                <span>Devis & Factures A4 conformes</span>
+              </div>
+              <div className="hero-feature-chip" style={{ marginLeft: '12px' }}>
+                <span className="hero-feature-dot" />
+                <span>Propositions commerciales de prestige</span>
+              </div>
+              <div className="hero-feature-chip">
+                <span className="hero-feature-dot" />
+                <span>Trésorerie & suivi financier en temps réel</span>
+              </div>
+            </div>
 
-        <div className="login-container">
-          <div className="login-header">
-            <img
-              src="/assets/sparkline-logo-dark.svg"
-              alt="Sparkline"
-              className="login-logo"
-            />
-            <h1 className="login-title">
-              Connexion à l'espace interne
-            </h1>
-            <p className="login-subtitle">
-              Gestion commerciale, devis, factures & finance
-            </p>
+            {/* Bottom Content with Catchy Editorial Headline */}
+            <div className="hero-bottom-content">
+              <span className="hero-kicker">Gérez sans friction</span>
+              <h2 className="hero-headline">
+                Pilotez vos documents et votre finance avec clarté et précision.
+              </h2>
+            </div>
           </div>
 
-          <div className="login-card">
-            <form onSubmit={handleSubmit}>
+          {/* RIGHT FORM PANEL */}
+          <div className="login-form-panel">
+            {/* 8-Point Asterisk Accent (inspired by reference) */}
+            <div className="form-accent-symbol">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M12 2.5V21.5M2.5 12H21.5M5.28 5.28L18.72 18.72M5.28 18.72L18.72 5.28"
+                  stroke="#ea580c"
+                  strokeWidth="2.8"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
 
-              {error && (
-                <div className="error-message">
-                  {error}
+            {/* Header */}
+            <div className="form-header">
+              <h1 className="form-title">Connexion</h1>
+              <p className="form-subtitle">
+                Accédez à vos documents, clients et indicateurs financiers en un seul endroit sécurisé.
+              </p>
+            </div>
+
+            {/* Error Banner */}
+            {error && (
+              <div className="form-error-banner" role="alert">
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Login Form */}
+            <form onSubmit={handleSubmit} noValidate>
+              {/* Email Field */}
+              <div className="form-field">
+                <div className="form-field-header">
+                  <label htmlFor="login-email" className="form-label">
+                    Votre adresse e-mail
+                  </label>
                 </div>
-              )}
-
-              <div className="form-group">
-                <label className="form-label">
-                  Adresse e-mail
-                </label>
-                <div className="input-wrapper">
-                  <Mail className="w-4 h-4 input-icon" />
+                <div className="form-input-container">
+                  <Mail className="w-4 h-4 form-input-icon" />
                   <input
+                    id="login-email"
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@sparkline.sn"
-                    className="form-input"
+                    className="form-input-control"
+                    autoComplete="email"
                   />
                 </div>
               </div>
 
-              <div className="form-group">
-                <div className="form-label-row">
-                  <label className="form-label" style={{ marginBottom: 0 }}>
+              {/* Password Field */}
+              <div className="form-field">
+                <div className="form-field-header">
+                  <label htmlFor="login-password" className="form-label">
                     Mot de passe
                   </label>
-                  <a href="#" className="form-link">
+                  <a href="#" className="form-forgot-link" onClick={(e) => e.preventDefault()}>
                     Oublié ?
                   </a>
                 </div>
-                <div className="input-wrapper">
-                  <Lock className="w-4 h-4 input-icon" />
+                <div className="form-input-container">
+                  <Lock className="w-4 h-4 form-input-icon" />
                   <input
-                    type="password"
+                    id="login-password"
+                    type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="form-input"
+                    className="form-input-control"
+                    autoComplete="current-password"
                   />
+                  <button
+                    type="button"
+                    className="form-toggle-btn"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
 
+              {/* Submit Button (High-contrast obsidian black, matching reference) */}
               <button
                 type="submit"
                 disabled={loading}
-                className="submit-btn"
+                className="form-submit-btn"
               >
                 {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Connexion en cours...</span>
+                  </>
                 ) : (
                   <>
                     <span>Se connecter</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 arrow-icon" />
                   </>
                 )}
               </button>
             </form>
 
-            <div className="login-footer">
+            {/* Quick Demo Pre-fill Pill */}
+            <div className="form-demo-section">
+              <button
+                type="button"
+                className="form-demo-pill"
+                onClick={handleFillDemo}
+                title="Cliquer pour pré-remplir les identifiants de démonstration"
+              >
+                <div>
+                  <div className="demo-pill-title">Compte Administrateur Démo</div>
+                  <div className="demo-pill-sub">admin@sparkline.sn · password123</div>
+                </div>
+                <span className="demo-pill-badge">
+                  {copiedDemo ? (
+                    <>
+                      <Check size={12} strokeWidth={2.5} />
+                      <span>Rempli</span>
+                    </>
+                  ) : (
+                    <span>Pré-remplir</span>
+                  )}
+                </span>
+              </button>
 
+              {/* Security info */}
+              <div className="form-footer-security">
+                <ShieldCheck size={14} color="#71717a" />
+                <span>Espace sécurisé Sparkline Desk · SSL 256-bit</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </>
   );
 }

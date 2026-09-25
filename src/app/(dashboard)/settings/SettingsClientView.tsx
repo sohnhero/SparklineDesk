@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import { MobileTableAccordion, MobileTableItem } from '@/components/ui/MobileTableAccordion';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface SettingsClientViewProps {
   initialCompany: {
@@ -42,7 +43,8 @@ export function SettingsClientView({
   const [savingCompany, setSavingCompany] = useState(false);
   const [savingDocs, setSavingDocs] = useState(false);
   const [restoringBackup, setRestoringBackup] = useState(false);
-    const router = useRouter();
+  const router = useRouter();
+  const { confirm } = useConfirm();
 
   const handleSaveCompany = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +94,17 @@ export function SettingsClientView({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!confirm('Attention : restaurer une sauvegarde va synchroniser et mettre à jour vos données. Continuer ?')) {
+    const confirmed = await confirm({
+      title: 'Restaurer une sauvegarde ?',
+      description: 'Attention : l’importation de cette sauvegarde va synchroniser et remplacer vos données existantes (documents, clients, paramètres).',
+      highlight: file.name,
+      confirmText: 'Restaurer les données',
+      cancelText: 'Annuler',
+      variant: 'warning',
+      icon: 'refresh',
+    });
+
+    if (!confirmed) {
       e.target.value = '';
       return;
     }

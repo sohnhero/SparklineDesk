@@ -9,6 +9,7 @@ import { DocumentPreview } from '@/components/preview/DocumentPreview';
 import { toast } from 'react-toastify';
 import { calculateDocumentTotals } from '@/lib/utils/calculations';
 import { formatMoney, uid } from '@/lib/utils/format';
+import { useConfirm } from '@/components/ui/ConfirmDialog';
 
 interface ClientItem {
   id: string;
@@ -65,6 +66,8 @@ export function DocumentEditorClient({
   const [mobileView, setMobileView] = useState<'form' | 'preview'>('form');
   const [zoom, setZoom] = useState(0.8);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'dirty'>('saved');
+  const router = useRouter();
+  const { confirm } = useConfirm();
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [catalogSearch, setCatalogSearch] = useState('');
   const [catalogCategory, setCatalogCategory] = useState('all');
@@ -76,9 +79,7 @@ export function DocumentEditorClient({
   const [newClientEmail, setNewClientEmail] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
   const [savingClient, setSavingClient] = useState(false);
-
-  const router = useRouter();
-    const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const meta = TYPE_META[doc.type as DocTypeKey] || TYPE_META.quote;
   const isFinancial = meta.kind === 'financial';
@@ -406,11 +407,18 @@ export function DocumentEditorClient({
     document.body.removeChild(wrapper);
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
     if (saveStatus === 'dirty') {
-      if (!confirm('Fermer sans enregistrer les dernières modifications ?')) {
-        return;
-      }
+      const confirmed = await confirm({
+        title: 'Modifications non enregistrées',
+        description: 'Voulez-vous vraiment quitter l’éditeur sans enregistrer vos modifications récentes ?',
+        highlight: doc.reference,
+        confirmText: 'Quitter sans enregistrer',
+        cancelText: 'Continuer l’édition',
+        variant: 'warning',
+        icon: 'warning',
+      });
+      if (!confirmed) return;
     }
     router.push('/documents');
   };
